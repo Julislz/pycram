@@ -8,6 +8,7 @@ from inspect import isgenerator, isgeneratorfunction
 from sqlalchemy.orm.session import Session
 import rospy
 
+from .external_interfaces import giskard
 from .world import World
 from .world_concepts.world_object import Object as WorldObject
 from .helper import GeneratorList, bcolors
@@ -65,7 +66,6 @@ class Designator(ABC):
 
     :ivar timestamp: The timestamp of creation of reference or None if still not referencing an object.
     """
-
 
     resolvers = {}
     """
@@ -453,6 +453,10 @@ class ActionDesignatorDescription(DesignatorDescription, Language):
         """
         yield self.ground()
 
+    def interrupt(self):
+        if giskard.giskard_wrapper:
+            giskard.giskard_wrapper.interrupt()
+
 
 class LocationDesignatorDescription(DesignatorDescription):
     """
@@ -478,18 +482,6 @@ class LocationDesignatorDescription(DesignatorDescription):
         Find a location that satisfies all constrains.
         """
         raise NotImplementedError(f"{type(self)}.ground() is not implemented.")
-
-
-#this knowledge should be somewhere else i guess
-SPECIAL_KNOWLEDGE = {
-    'bigknife':
-        [("top", [-0.08, 0, 0])],
-    'whisk':
-        [("top", [-0.08, 0, 0])],
-    'bowl':
-        [("front", [1.0, 2.0, 3.0]),
-         ("key2", [4.0, 5.0, 6.0])]
-}
 
 
 class ObjectDesignatorDescription(DesignatorDescription):
@@ -590,31 +582,6 @@ class ObjectDesignatorDescription(DesignatorDescription):
             return self.__class__.__qualname__ + f"(" + ', '.join(
                 [f"{f.name}={self.__getattribute__(f.name)}" for f in fields(self)] + [
                     f"pose={self.pose}"]) + ')'
-
-        def special_knowledge_adjustment_pose(self, grasp: str, pose: Pose) -> Pose:
-            """
-            Returns the adjusted target pose based on special knowledge for "grasp front".
-
-            :param grasp: From which side the object should be grasped
-            :param pose: Pose at which the object should be grasped, before adjustment
-            :return: The adjusted grasp pose
-            """
-            lt = LocalTransformer()
-            pose_in_object = lt.transform_pose(pose, self.world_object.tf_frame)
-
-            special_knowledge = []  # Initialize as an empty list
-            if self.obj_type in SPECIAL_KNOWLEDGE:
-                special_knowledge = SPECIAL_KNOWLEDGE[self.obj_type]
-
-            for key, value in special_knowledge:
-                if key == grasp:
-                    # Adjust target pose based on special knowledge
-                    pose_in_object.pose.position.x += value[0]
-                    pose_in_object.pose.position.y += value[1]
-                    pose_in_object.pose.position.z += value[2]
-                    rospy.loginfo("Adjusted target pose based on special knowledge for grasp: ", grasp)
-                    return pose_in_object
-            return pose
 
     def __init__(self, names: Optional[List[str]] = None, types: Optional[List[ObjectType]] = None,
                  resolver: Optional[Callable] = None):

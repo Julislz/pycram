@@ -1,9 +1,13 @@
 import logging
 import os
 import sys
+from std_msgs.msg import String
+from knowledge_msgs.srv import IsKnown, ObjectPose
+import rospy
 import rosservice
 
-from typing_extensions import Dict, List, Union
+
+from typing import Dict, List, Union
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(SCRIPT_DIR, os.pardir, os.pardir, "neem-interface", "src"))
@@ -124,3 +128,39 @@ def knowrob_string_to_pose(pose_as_string: str) -> List[float]:
     xyz = list(map(float, pos.split(",")))
     qxyzw = list(map(float, ori.split(",")))
     return xyz + qxyzw
+
+def get_guest_info(id):
+    """
+    function that uses Knowledge Service to get Name and drink from new guest via ID
+    :param id: integer for person
+    :return: ["name", "drink"]
+    """
+
+    rospy.wait_for_service('info_server')
+    try:
+        info_service = rospy.ServiceProxy('info_server', IsKnown)
+        # guest_data = person_infos: "name,drink"
+        guest_data = info_service(id)
+        # result = ['person_infos: "name', 'drink"']
+        result = str(guest_data).split(',')
+        result[0] = result[0][13:]
+        return result
+    except rospy.ServiceException as e:
+        rospy.logerr("Service call failed")
+        pass
+
+def get_table_pose(table_name):
+    """
+    Get table pose from knowledge
+    :param table_name: predefined name for each table
+
+    :return: object pose of the given table
+    """
+    rospy.wait_for_service('pose_server')
+    try:
+        service = rospy.ServiceProxy('pose_server', ObjectPose)
+        table_pose = service(table_name)#
+        return table_pose
+    except rospy.ServiceException:
+        rospy.logerr("Service call failed")
+        pass
