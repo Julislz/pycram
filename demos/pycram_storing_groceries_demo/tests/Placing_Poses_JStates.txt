@@ -1,0 +1,95 @@
+Pre-Pose für Platzieren
+header: 
+  seq: 0
+  stamp: 
+    secs: 1715351914
+    nsecs: 967721939
+  frame_id: "map"
+pose: 
+  position: 
+    x: 2.2366585857723784
+    y: 1.9627214972663145
+    z: 0.0
+  orientation: 
+    x: 0.0
+    y: 0.0
+    z: 0.6814010626141653
+    w: 0.7319102348432398
+    
+    
+joint states - Pre Placing:
+{'base_footprint_joint': 0.0, 'base_f_bumper_joint': 0.0, 'base_b_bumper_joint': 0.0, 'base_roll_joint': 8.340981, 'base_r_drive_wheel_joint': 126.114912, 'base_l_drive_wheel_joint': 89.033832, 'base_r_passive_wheel_x_frame_joint': 0.0, 'base_r_passive_wheel_y_frame_joint': 0.0, 'base_r_passive_wheel_z_joint': 0.0, 'base_l_passive_wheel_x_frame_joint': 0.0, 'base_l_passive_wheel_y_frame_joint': 0.0, 'base_l_passive_wheel_z_joint': 0.0, 'base_range_sensor_joint': 0.0, 'base_imu_frame_joint': 0.0, 'torso_lift_joint': 0.0, 'head_pan_joint': 0.0481063434842568, 'head_tilt_joint': 0.02251261932977633, 'head_l_stereo_camera_joint': 0.0, 'head_l_stereo_camera_gazebo_frame_joint': 0.0, 'head_r_stereo_camera_joint': 0.0, 'head_r_stereo_camera_gazebo_frame_joint': 0.0, 'head_center_camera_frame_joint': 0.0, 'head_center_camera_gazebo_frame_joint': 0.0, 'head_rgbd_sensor_joint': 0.0, 'head_rgbd_sensor_gazebo_frame_joint': 0.0, 'arm_lift_joint': 0.02522383665086743, 'arm_flex_joint': -0.02603610641367915, 'arm_roll_joint': 0.036315433411582276, 'wrist_flex_joint': -1.5114229187217965, 'wrist_roll_joint': 0.1278587423892561, 'wrist_ft_sensor_frame_joint': 0.0, 'hand_palm_joint': 0.0, 'hand_motor_joint': -0.525909, 'hand_l_proximal_joint': 0.0, 'hand_l_spring_proximal_joint': 0.7569089999999999, 'hand_l_mimic_distal_joint': 0.0, 'hand_l_distal_joint': 0.0, 'hand_l_finger_tip_frame_joint': 0.0, 'hand_l_finger_vacuum_frame_joint': 0.0, 'hand_r_proximal_joint': 0.0, 'hand_r_spring_proximal_joint': 0.796908, 'hand_r_mimic_distal_joint': 0.0, 'hand_r_distal_joint': 0.0, 'hand_r_finger_tip_frame_joint': 0.0, 'hand_camera_frame_joint': 0.0, 'hand_camera_gazebo_frame_joint': 0.0, 'hand_gripper_tool_frame_joint': 0.0}
+
+##############################################################################
+
+oberes shelf - Placing Position:
+header: 
+  seq: 0
+  stamp: 
+    secs: 1715352085
+    nsecs: 501834392
+  frame_id: "map"
+pose: 
+  position: 
+    x: 2.2458112735263533
+    y: 2.2807181948517625
+    z: 0.0
+  orientation: 
+    x: 0.0
+    y: 0.0
+    z: 0.6844745208241225
+    w: 0.729036782571763
+    
+oberes shelf - Placing Joint states
+{'base_footprint_joint': 0.0, 'base_f_bumper_joint': 0.0, 'base_b_bumper_joint': 0.0, 'base_roll_joint': 6.366144, 'base_r_drive_wheel_joint': 125.843072, 'base_l_drive_wheel_joint': 101.843416, 'base_r_passive_wheel_x_frame_joint': 0.0, 'base_r_passive_wheel_y_frame_joint': 0.0, 'base_r_passive_wheel_z_joint': 0.0, 'base_l_passive_wheel_x_frame_joint': 0.0, 'base_l_passive_wheel_y_frame_joint': 0.0, 'base_l_passive_wheel_z_joint': 0.0, 'base_range_sensor_joint': 0.0, 'base_imu_frame_joint': 0.0, 'torso_lift_joint': 0.0, 'head_pan_joint': 0.0481063434842568, 'head_tilt_joint': 0.02251261932977633, 'head_l_stereo_camera_joint': 0.0, 'head_l_stereo_camera_gazebo_frame_joint': 0.0, 'head_r_stereo_camera_joint': 0.0, 'head_r_stereo_camera_gazebo_frame_joint': 0.0, 'head_center_camera_frame_joint': 0.0, 'head_center_camera_gazebo_frame_joint': 0.0, 'head_rgbd_sensor_joint': 0.0, 'head_rgbd_sensor_gazebo_frame_joint': 0.0, 'arm_lift_joint': 0.21341132536269475, 'arm_flex_joint': -0.516526106413679, 'arm_roll_joint': 0.03635143341158242, 'wrist_flex_joint': -1.1030029187217965, 'wrist_roll_joint': 0.12900774238925594, 'wrist_ft_sensor_frame_joint': 0.0, 'hand_palm_joint': 0.0, 'hand_motor_joint': -0.52709, 'hand_l_proximal_joint': 0.0, 'hand_l_spring_proximal_joint': 0.7550899999999999, 'hand_l_mimic_distal_joint': 0.0, 'hand_l_distal_joint': 0.0, 'hand_l_finger_tip_frame_joint': 0.0, 'hand_l_finger_vacuum_frame_joint': 0.0, 'hand_r_proximal_joint': 0.0, 'hand_r_spring_proximal_joint': 0.79909, 'hand_r_mimic_distal_joint': 0.0, 'hand_r_distal_joint': 0.0, 'hand_r_finger_tip_frame_joint': 0.0, 'hand_camera_frame_joint': 0.0, 'hand_camera_gazebo_frame_joint': 0.0, 'hand_gripper_tool_frame_joint': 0.0}
+
+##############################################################################
+
+middle shelf - Placing Position:
+
+header: 
+  seq: 0
+  stamp: 
+    secs: 1715352370
+    nsecs: 479710817
+  frame_id: "map"
+pose: 
+  position: 
+    x: 2.2399125286579014
+    y: 2.127177473524398
+    z: 0.0
+  orientation: 
+    x: 0.0
+    y: 0.0
+    z: 0.699534900101993
+    w: 0.71459843516432
+
+middle shelf - joint states
+{'base_footprint_joint': 0.0, 'base_f_bumper_joint': 0.0, 'base_b_bumper_joint': 0.0, 'base_roll_joint': 6.556232, 'base_r_drive_wheel_joint': 123.247512, 'base_l_drive_wheel_joint': 97.755984, 'base_r_passive_wheel_x_frame_joint': 0.0, 'base_r_passive_wheel_y_frame_joint': 0.0, 'base_r_passive_wheel_z_joint': 0.0, 'base_l_passive_wheel_x_frame_joint': 0.0, 'base_l_passive_wheel_y_frame_joint': 0.0, 'base_l_passive_wheel_z_joint': 0.0, 'base_range_sensor_joint': 0.0, 'base_imu_frame_joint': 0.0, 'torso_lift_joint': 0.0, 'head_pan_joint': 0.0481063434842568, 'head_tilt_joint': 0.02251261932977633, 'head_l_stereo_camera_joint': 0.0, 'head_l_stereo_camera_gazebo_frame_joint': 0.0, 'head_r_stereo_camera_joint': 0.0, 'head_r_stereo_camera_gazebo_frame_joint': 0.0, 'head_center_camera_frame_joint': 0.0, 'head_center_camera_gazebo_frame_joint': 0.0, 'head_rgbd_sensor_joint': 0.0, 'head_rgbd_sensor_gazebo_frame_joint': 0.0, 'arm_lift_joint': 0.09170367865151295, 'arm_flex_joint': -1.059938106413679, 'arm_roll_joint': 0.03636143341158249, 'wrist_flex_joint': -0.6230249187217964, 'wrist_roll_joint': 0.12824474238925587, 'wrist_ft_sensor_frame_joint': 0.0, 'hand_palm_joint': 0.0, 'hand_motor_joint': -0.528272, 'hand_l_proximal_joint': 0.0, 'hand_l_spring_proximal_joint': 0.7542709999999999, 'hand_l_mimic_distal_joint': 0.0, 'hand_l_distal_joint': 0.0, 'hand_l_finger_tip_frame_joint': 0.0, 'hand_l_finger_vacuum_frame_joint': 0.0, 'hand_r_proximal_joint': 0.0, 'hand_r_spring_proximal_joint': 0.798272, 'hand_r_mimic_distal_joint': 0.0, 'hand_r_distal_joint': 0.0, 'hand_r_finger_tip_frame_joint': 0.0, 'hand_camera_frame_joint': 0.0, 'hand_camera_gazebo_frame_joint': 0.0, 'hand_gripper_tool_frame_joint': 0.0}
+
+#######################################################
+
+lowest shelf - Placing Pose
+header: 
+  seq: 0
+  stamp: 
+    secs: 1715352633
+    nsecs: 229715108
+  frame_id: "map"
+pose: 
+  position: 
+    x: 2.2544364643687644
+    y: 2.0529356740515685
+    z: 0.0
+  orientation: 
+    x: 0.0
+    y: 0.0
+    z: 0.689964917067176
+    w: 0.7238428097428923
+    
+lowest shelf - joint states
+
+{'base_footprint_joint': 0.0, 'base_f_bumper_joint': 0.0, 'base_b_bumper_joint': 0.0, 'base_roll_joint': 6.694043, 'base_r_drive_wheel_joint': 122.304072, 'base_l_drive_wheel_joint': 95.925088, 'base_r_passive_wheel_x_frame_joint': 0.0, 'base_r_passive_wheel_y_frame_joint': 0.0, 'base_r_passive_wheel_z_joint': 0.0, 'base_l_passive_wheel_x_frame_joint': 0.0, 'base_l_passive_wheel_y_frame_joint': 0.0, 'base_l_passive_wheel_z_joint': 0.0, 'base_range_sensor_joint': 0.0, 'base_imu_frame_joint': 0.0, 'torso_lift_joint': 0.0, 'head_pan_joint': 0.04812134348425667, 'head_tilt_joint': 0.022516619329776333, 'head_l_stereo_camera_joint': 0.0, 'head_l_stereo_camera_gazebo_frame_joint': 0.0, 'head_r_stereo_camera_joint': 0.0, 'head_r_stereo_camera_gazebo_frame_joint': 0.0, 'head_center_camera_frame_joint': 0.0, 'head_center_camera_gazebo_frame_joint': 0.0, 'head_rgbd_sensor_joint': 0.0, 'head_rgbd_sensor_gazebo_frame_joint': 0.0, 'arm_lift_joint': 0.09170367865151295, 'arm_flex_joint': -2.035550106413679, 'arm_roll_joint': 0.036356433411582234, 'wrist_flex_joint': 0.2544200812782038, 'wrist_roll_joint': 0.12479274238925608, 'wrist_ft_sensor_frame_joint': 0.0, 'hand_palm_joint': 0.0, 'hand_motor_joint': -0.527681, 'hand_l_proximal_joint': 0.0, 'hand_l_spring_proximal_joint': 0.7576809999999999, 'hand_l_mimic_distal_joint': 0.0, 'hand_l_distal_joint': 0.0, 'hand_l_finger_tip_frame_joint': 0.0, 'hand_l_finger_vacuum_frame_joint': 0.0, 'hand_r_proximal_joint': 0.0, 'hand_r_spring_proximal_joint': 0.795681, 'hand_r_mimic_distal_joint': 0.0, 'hand_r_distal_joint': 0.0, 'hand_r_finger_tip_frame_joint': 0.0, 'hand_camera_frame_joint': 0.0, 'hand_camera_gazebo_frame_joint': 0.0, 'hand_gripper_tool_frame_joint': 0.0}
+
+
+
