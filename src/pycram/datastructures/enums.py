@@ -89,3 +89,19 @@ class WorldMode(Enum):
     """
     GUI = "GUI"
     DIRECT = "DIRECT"
+
+class State(Enum):
+    """
+    Enumeration which describes the result of a language expression.
+    """
+    SUCCEEDED = 1
+    FAILED = 0
+    RUNNING = 2
+    INTERRUPTED = 3
+
+class FilterConfig(Enum):
+    """
+    Declare existing filter methods.
+    Currently supported: Butterworth
+    """
+    butterworth = 1

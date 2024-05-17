@@ -1,4 +1,6 @@
 import itertools
+from typing import Optional
+
 from typing_extensions import List, Union, Callable
 from typing_extensions import Any, Union
 
@@ -6,12 +8,13 @@ from .object_designator import ObjectDesignatorDescription, BelieveObject, Objec
 from ..datastructures.enums import Arms
 from ..designator import ActionDesignatorDescription
 from .actions.actions import (ParkArmsActionPerformable, MoveTorsoActionPerformable,
-                                                SetGripperActionPerformable, GripActionPerformable,
-                                                PlaceActionPerformable, PickUpActionPerformable,
-                                                NavigateActionPerformable, TransportActionPerformable,
-                                                LookAtActionPerformable, DetectActionPerformable, OpenActionPerformable,
-                                                CloseActionPerformable, GraspingActionPerformable,
-                                                ReleaseActionPerformable)
+                              SetGripperActionPerformable, GripActionPerformable,
+                              PlaceActionPerformable, PickUpActionPerformable,
+                              NavigateActionPerformable, TransportActionPerformable,
+                              LookAtActionPerformable, DetectActionPerformable, OpenActionPerformable,
+                              CloseActionPerformable, GraspingActionPerformable,
+                              ReleaseActionPerformable, HeadFollowPerformable, PouringActionPerformable,
+                              OpenDishwasherPerformable, PlaceGivenObjActionPerformable)
 from ..datastructures.pose import Pose
 
 
@@ -151,7 +154,8 @@ class PickUpAction(ActionDesignatorDescription):
     Designator to let the robot pick up an object.
     """
 
-    def __init__(self, object_designator_description:  Union[ObjectDesignatorDescription, ObjectDesignatorDescription.Object],
+    def __init__(self,
+                 object_designator_description: Union[ObjectDesignatorDescription, ObjectDesignatorDescription.Object],
                  arms: List[str], grasps: List[str], resolver=None):
         """
         Lets the robot pick up an object. The description needs an object designator describing the object that should be
@@ -217,6 +221,50 @@ class PlaceAction(ActionDesignatorDescription):
         return PlaceActionPerformable(obj_desig, self.arms[0], self.target_locations[0])
 
 
+class PlaceGivenObjAction(ActionDesignatorDescription):
+    """
+    A class representing a designator for a place action of human given objects, allowing a robot to place a
+    human given object, that could not be picked up or were not found in the FOV.
+
+    This class encapsulates the details of the place action of human given objects, including the type of the object to
+    be placed, the arm to be used, the target_location to place the object and the grasp type. It defines the sequence
+    of operations for the robot to execute the place action of human given object, such as moving the arm holding the
+    object to the target_location, opening the gripper, and lifting the arm.
+    """
+
+    def __init__(self,
+                 object_types: List[str], arms: List[str], target_locations: List[Pose], grasps: List[str],
+                 on_table: Optional[bool] = True, resolver=None):
+        """
+        Lets the robot place a human given object. The description needs an object type describing the object that
+        should be placed, an arm that should be used as well as the target location where the object should be placed
+        and the needed grasping movement.
+
+        :param object_types: List of possible object types
+        :param arms: List of possible arms that could be used
+        :param target_locations: List of possible target locations for the object to be placed
+        :param grasps: List of possible grasps for the object
+        :param resolver: An optional resolver that returns a performable designator with elements from the lists of
+                         possible paramter
+        """
+        super().__init__(resolver)
+        self.object_types: List[str] = object_types
+        self.arms: List[str] = arms
+        self.grasps: List[str] = grasps
+        self.target_locations: List[Pose] = target_locations
+        self.on_table: bool = on_table
+
+    def ground(self) -> PlaceGivenObjActionPerformable:
+        """
+        Default resolver that returns a performable designator with the first entries from the lists of possible
+        parameter.
+
+        :return: A performable designator
+        """
+        return self.PlaceGivenObjActionPerformable(self.object_types[0], self.arms[0], self.target_locations[0],
+                                                   self.grasps[0], self.on_table)
+
+
 class NavigateAction(ActionDesignatorDescription):
     """
     Navigates the Robot to a position.
@@ -271,7 +319,7 @@ class TransportAction(ActionDesignatorDescription):
         :return: A performable designator
         """
         obj_desig = self.object_designator_description \
-            if isinstance(self.object_designator_description, ObjectDesignatorDescription.Object)\
+            if isinstance(self.object_designator_description, ObjectDesignatorDescription.Object) \
             else self.object_designator_description.resolve()
 
         return TransportActionPerformable(obj_desig, self.arms[0], self.target_locations[0])
@@ -306,15 +354,21 @@ class DetectAction(ActionDesignatorDescription):
     Detects an object that fits the object description and returns an object designator describing the object.
     """
 
-    def __init__(self, object_designator_description: ObjectDesignatorDescription, resolver=None):
+    def __init__(self, technique, resolver=None,
+                 object_designator: Optional[ObjectDesignatorDescription] = None,
+                 state: Optional[str] = None):
         """
         Tries to detect an object in the field of view (FOV) of the robot.
 
+        :param technique: Technique means how the object should be detected, e.g. 'color', 'shape', etc.
         :param object_designator_description: Object designator describing the object
+        :param state: The state instructs our perception system to either start or stop the search for an object or human.
         :param resolver: An alternative resolver
         """
         super().__init__(resolver)
-        self.object_designator_description: ObjectDesignatorDescription = object_designator_description
+        self.technique: str = technique
+        self.object_designator: Optional[ObjectDesignatorDescription] = object_designator
+        self.state: Optional[str] = state
 
     def ground(self) -> DetectActionPerformable:
         """
@@ -322,7 +376,9 @@ class DetectAction(ActionDesignatorDescription):
 
         :return: A performable designator
         """
-        return DetectActionPerformable(self.object_designator_description.resolve())
+
+        return self.DetectActionPerformable(technique=self.technique, object_designator=self.object_designator,
+                                            state=self.state)
 
 
 class OpenAction(ActionDesignatorDescription):
@@ -411,3 +467,92 @@ class GraspingAction(ActionDesignatorDescription):
         :return: A performable action designator that contains specific arguments
         """
         return GraspingActionPerformable(self.arms[0], self.object_description.resolve())
+
+
+class HeadFollowAction(ActionDesignatorDescription):
+    """
+    Continuously move head to human closest to robot
+    """
+
+    def __init__(self, state: str, resolver=None):
+        """
+        Start or Stopping looking at human. The robot will continuously move its head to the human closest to the robot.
+        State is either 'start' or 'stop', defined in enums.py.
+
+        :param state: defines if the robot should start/stop looking at human
+        :param resolver: An optional resolver that returns a performable designator from the designator description
+        """
+        super().__init__(resolver)
+        self.state = state
+
+    def ground(self) -> HeadFollowPerformable:
+        """
+        Default resolver that returns a performable designator with the given state
+
+        :return: A performable designator
+        """
+        return HeadFollowPerformable(self.state)
+
+
+class PouringAction(ActionDesignatorDescription):
+    """
+    Designator to let the robot perform a pouring action.
+    """
+
+    def __init__(self, target_locations: List[Pose], arms: List[str], directions: List[str], angles: List[float],
+                 resolver=None):
+        """
+        :param target_locations: List of possible target locations to be poured into
+        :param arms: List of possible arms that could be used
+        :param directions: List of possible directions for the pouring direction
+        :param angles: List of possible angles that the gripper tilts to
+        :param resolver: An optional resolver that returns a performable designator with elements from the lists of
+                         possible paramter
+        """
+        super().__init__(resolver)
+        self.target_locations: List[Pose] = target_locations
+        self.arms: List[str] = arms
+        self.directions: List[str] = directions
+        self.angels: List[float] = angles
+
+    def ground(self) -> PouringActionPerformable:
+        """
+        Default resolver that returns a performable designator with the first entries from the lists of possible
+        parameter.
+        :return: A performable designator
+        """
+        return self.PouringActionPerformable(self.target_locations[0], self.arms[0], self.directions[0], self.angels[0])
+
+
+class OpenDishwasherAction(ActionDesignatorDescription):
+    """
+    Opens a container like object
+
+    Can currently not be used
+    """
+
+    def __init__(self, handle_name: str, door_name: str, goal_state_half_open: float, goal_state_full_open: float,
+                 arms: List[str], resolver=None):
+        """
+        Moves the arm of the robot to open a container.
+
+        :param object_designator_description: Object designator describing the handle that should be used to open
+        :param arms: A list of possible arms that should be used
+        :param resolver: A alternative resolver that returns a performable designator for the lists of possible parameter.
+        """
+        super().__init__(resolver)
+        self.handle_name = handle_name
+        self.door_name = door_name
+        self.goal_state_half_open = goal_state_half_open
+        self.goal_state_full_open = goal_state_full_open
+        self.arms: List[str] = arms
+
+    def ground(self) -> OpenDishwasherPerformable:
+        """
+        Default resolver that returns a performable designator with the resolved object description and the first entries
+        from the lists of possible parameter.
+
+        :return: A performable designator
+        """
+        return self.OpenDishwasherPerformable(self.handle_name, self.door_name, self.goal_state_half_open,
+                                              self.goal_state_full_open, self.arms[0])

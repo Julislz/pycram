@@ -1,24 +1,31 @@
 import abc
 import inspect
+from typing import Optional
 
 import numpy as np
+import rospy
+from geometry_msgs.msg import WrenchStamped
 from tf import transformations
 from typing_extensions import Union, Type
+
+from ..action_designator import MoveTorsoAction, NavigateAction
+from ... import helper
 from ...designator import ActionDesignatorDescription
 from ..motion_designator import *
 from ...datastructures.pose import Pose
 from ...datastructures.enums import Arms, Grasp
+from ...language import Monitor
+from ...ros.force_torque_sensor import ForceTorqueSensor
 from ...task import with_tree
 from dataclasses import dataclass, field
 from ..location_designator import CostmapLocation
 from ..object_designator import BelieveObject
-# from ...bullet_world import BulletWorld
-from ...helper import multiply_quaternions
+from ...helper import multiply_quaternions, axis_angle_to_quaternion
 from ...local_transformer import LocalTransformer
 from ...orm.base import Pose as ORMPose
 from ...orm.object_designator import Object as ORMObject
 from ...orm.action_designator import Action as ORMAction
-from ...plan_failures import ObjectUnfetchable, ReachabilityFailure
+from ...plan_failures import ObjectUnfetchable, ReachabilityFailure, SensorMonitoringCondition
 from ...robot_descriptions import robot_description
 from ...orm.action_designator import (ParkArmsAction as ORMParkArmsAction, NavigateAction as ORMNavigateAction,
                                       PickUpAction as ORMPickUpAction, PlaceAction as ORMPlaceAction,
@@ -27,6 +34,7 @@ from ...orm.action_designator import (ParkArmsAction as ORMParkArmsAction, Navig
                                       TransportAction as ORMTransportAction, OpenAction as ORMOpenAction,
                                       CloseAction as ORMCloseAction, GraspingAction as ORMGraspingAction, Action,
                                       FaceAtAction as ORMFaceAtAction)
+from ...world import World
 
 
 @dataclass
@@ -230,75 +238,102 @@ class PickUpActionPerformable(ActionAbstract):
     object_at_execution: Optional[ObjectDesignatorDescription.Object] = field(init=False)
     """
     The object at the time this Action got created. It is used to be a static, information holding entity. It is
-    not updated when the BulletWorld object is changed.
+    not updated when the BWorld object is changed.
     """
     orm_class: Type[ActionAbstract] = field(init=False, default=ORMPickUpAction)
 
     @with_tree
     def perform(self) -> None:
-        # Store the object's data copy at execution
-        self.object_at_execution = self.object_designator.frozen_copy()
+        # Initialize the local transformer and robot reference
+        lt = LocalTransformer()
         robot = World.robot
         # Retrieve object and robot from designators
         object = self.object_designator.world_object
-        # Get grasp orientation and target pose
-        grasp = robot_description.grasps.get_orientation_for_grasp(self.grasp)
-        # oTm = Object Pose in Frame map
+        # Calculate the object's pose in the map frame
         oTm = object.get_pose()
-        # Transform the object pose to the object frame, basically the origin of the object frame
-        mTo = object.local_transformer.transform_to_object_frame(oTm, object)
-        # Adjust the pose according to the special knowledge of the object designator
-        adjusted_pose = self.object_designator.special_knowledge_adjustment_pose(self.grasp, mTo)
-        # Transform the adjusted pose to the map frame
-        adjusted_oTm = object.local_transformer.transform_pose(adjusted_pose, "map")
-        # multiplying the orientation therefore "rotating" it, to get the correct orientation of the gripper
-        ori = multiply_quaternions([adjusted_oTm.orientation.x, adjusted_oTm.orientation.y,
-                                    adjusted_oTm.orientation.z, adjusted_oTm.orientation.w],
-                                   grasp)
+        execute = True
 
-        # Set the orientation of the object pose by grasp in MAP
-        adjusted_oTm.orientation.x = ori[0]
-        adjusted_oTm.orientation.y = ori[1]
-        adjusted_oTm.orientation.z = ori[2]
-        adjusted_oTm.orientation.w = ori[3]
+        # Adjust object pose for top-grasping, if applicable
+        if self.grasp == "top":
+            print("Metalbowl from top")
+            # Handle special cases for certain object types (e.g., Cutlery, Metalbowl)
+            # Note: This includes hardcoded adjustments and should ideally be generalized
+            if self.object_designator.type == "Cutlery":
+                # todo: this z is the popcorn-table height, we need to define location to get that z otherwise it
+                #  is hardcoded
+                oTm.pose.position.z = 0.71
+            oTm.pose.position.z += 0.035
 
-        # prepose depending on the gripper (its annoying we have to put pr2_1 here tbh
-        # gripper_frame = "pr2_1/l_gripper_tool_frame" if self.arm == "left" else "pr2_1/r_gripper_tool_frame"
-        gripper_frame = robot.get_link_tf_frame(robot_description.get_tool_frame(self.arm))
-        # First rotate the gripper, so the further calculations makes sense
-        tmp_for_rotate_pose = object.local_transformer.transform_pose(adjusted_oTm, gripper_frame)
-        tmp_for_rotate_pose.pose.position.x = 0
-        tmp_for_rotate_pose.pose.position.y = 0
-        tmp_for_rotate_pose.pose.position.z = -0.1
-        gripper_rotate_pose = object.local_transformer.transform_pose(tmp_for_rotate_pose, "map")
+        # Determine the grasp orientation and transform the pose to the base link frame
+        grasp_rotation = robot_description.grasps.get_orientation_for_grasp(self.grasp)
+        oTb = lt.transform_pose(oTm, robot.get_link_tf_frame("base_link"))
+        # Set pose to the grasp rotation
+        oTb.orientation = grasp_rotation
+        # Transform the pose to the map frame
+        oTmG = lt.transform_pose(oTb, "map")
 
-        #Perform Gripper Rotate
-        # BulletWorld.current_bullet_world.add_vis_axis(gripper_rotate_pose)
-        # MoveTCPMotion(gripper_rotate_pose, self.arm).resolve().perform()
+        # Open the gripper before picking up the object
+        rospy.logwarn("Opening Gripper")
+        MoveGripperMotion(motion="open", gripper=self.arm).resolve().perform()
 
-        oTg = object.local_transformer.transform_pose(adjusted_oTm, gripper_frame)
-        oTg.pose.position.x -= 0.1 # in x since this is how the gripper is oriented
-        prepose = object.local_transformer.transform_pose(oTg, "map")
-
-        # Perform the motion with the prepose and open gripper
-        World.current_world.add_vis_axis(prepose)
-        MoveTCPMotion(prepose, self.arm, allow_gripper_collision=True).perform()
-        MoveGripperMotion(motion="open", gripper=self.arm).perform()
-
-        # Perform the motion with the adjusted pose -> actual grasp and close gripper
-        World.current_world.add_vis_axis(adjusted_oTm)
-        MoveTCPMotion(adjusted_oTm, self.arm, allow_gripper_collision=True).perform()
-        adjusted_oTm.pose.position.z += 0.03
-        MoveGripperMotion(motion="close", gripper=self.arm).perform()
+        # Move to the pre-grasp position and visualize the action
+        rospy.logwarn("Picking up now")
+        World.current_world.add_vis_axis(oTmG)
+        # Execute Bool, because sometimes u only want to visualize the poses to test things
+        if execute:
+            MoveTCPMotion(oTmG, self.arm, allow_gripper_collision=False).resolve().perform()
+        # Calculate and apply any special knowledge offsets based on the robot and object type
+        # Note: This currently includes robot-specific logic that should be generalized
         tool_frame = robot_description.get_tool_frame(self.arm)
-        robot.attach(object, tool_frame)
+        special_knowledge_offset = lt.transform_pose(oTmG, robot.get_link_tf_frame(tool_frame))
 
-        # Lift object
-        World.current_world.add_vis_axis(adjusted_oTm)
-        MoveTCPMotion(adjusted_oTm, self.arm, allow_gripper_collision=True).perform()
+        # todo: this is for hsrb only at the moment we will need a function that returns us special knowledge
+        #  depending on robot
+        if robot.name == "hsrb":
+            if self.grasp == "top":
+                if self.object_designator.type == "Metalbowl":
+                    special_knowledge_offset.pose.position.y += 0.085
+                    special_knowledge_offset.pose.position.x -= 0.03
 
-        # Remove the vis axis from the world
-        World.current_world.remove_vis_axis()
+        push_base = special_knowledge_offset
+        # todo: this is for hsrb only at the moment we will need a function that returns us special knowledge
+        #  depending on robot if we dont generlize this we will have a big list in the end of all robots
+        if robot.name == "hsrb":
+            z = 0.04
+            if self.grasp == "top":
+                z = 0.025
+                if self.object_designator.type == "Metalbowl":
+                    z = 0.044
+            push_base.pose.position.z += z
+        push_baseTm = lt.transform_pose(push_base, "map")
+        special_knowledge_offsetTm = lt.transform_pose(push_base, "map")
+
+        # Grasping from the top inherently requires calculating an offset, whereas front grasping involves
+        # slightly pushing the object forward.
+        rospy.logwarn("Offset now")
+        # m = ManualMarkerPublisher()
+        # m.create_marker("pose_pickup", special_knowledge_offsetTm)
+        World.current_world.add_vis_axis(special_knowledge_offsetTm)
+        if execute:
+            MoveTCPMotion(special_knowledge_offsetTm, self.arm, allow_gripper_collision=False).resolve().perform()
+
+        rospy.logwarn("Pushing now")
+        World.current_world.add_vis_axis(push_baseTm)
+        if execute:
+            MoveTCPMotion(push_baseTm, self.arm, allow_gripper_collision=False).resolve().perform()
+
+        # Finalize the pick-up by closing the gripper and lifting the object
+        rospy.logwarn("Close Gripper")
+        MoveGripperMotion(motion="close", gripper=self.arm, allow_gripper_collision=True).resolve().perform()
+
+        rospy.logwarn("Lifting now")
+        liftingTm = push_baseTm
+        liftingTm.pose.position.z += 0.03
+        World.current_world.add_vis_axis(liftingTm)
+        if execute:
+            MoveTCPMotion(liftingTm, self.arm, allow_gripper_collision=False).resolve().perform()
+        tool_frame = robot_description.get_tool_frame(self.arm)
+        robot.attach(object=self.object_designator.world_object, link=tool_frame)
 
 
 @dataclass
@@ -323,23 +358,180 @@ class PlaceActionPerformable(ActionAbstract):
 
     @with_tree
     def perform(self) -> None:
-        object_pose = self.object_designator.world_object.get_pose()
-        local_tf = LocalTransformer()
 
-        # Transformations such that the target position is the position of the object and not the tcp
-        tcp_to_object = local_tf.transform_pose(object_pose,
-                                                World.robot.get_link_tf_frame(
-                                                    robot_description.get_tool_frame(self.arm)))
-        target_diff = self.target_location.to_transform("target").inverse_times(
-            tcp_to_object.to_transform("object")).to_pose()
+        def monitor_func():
+            fts = ForceTorqueSensor(robot_name='hsrb')
+            pr = True
+            der: WrenchStamped() = fts.get_last_value()
+            print(abs(der.wrench.force.y))
+            if abs(der.wrench.force.y) > 0.45:
+                print(abs(der.wrench.force.y))
+                print(abs(der.wrench.torque.y))
+                return SensorMonitoringCondition
+            return False
 
-        MoveTCPMotion(target_diff, self.arm).perform()
-        MoveGripperMotion("open", self.arm).perform()
-        World.robot.detach(self.object_designator.world_object)
-        retract_pose = local_tf.transform_pose(target_diff, World.robot.get_link_tf_frame(
-            robot_description.get_tool_frame(self.arm)))
-        retract_pose.position.x -= 0.07
-        MoveTCPMotion(retract_pose, self.arm).perform()
+        lt = LocalTransformer()
+        robot = World.robot
+        execute = True
+        # oTm = Object Pose in Frame map
+        oTm = self.target_location
+
+        if self.grasp == "top":
+            oTm.pose.position.z += 0.05
+
+        # Determine the grasp orientation and transform the pose to the base link frame
+        grasp_rotation = robot_description.grasps.get_orientation_for_grasp(self.grasp)
+        oTb = lt.transform_pose(oTm, robot.get_link_tf_frame("base_link"))
+        # Set pose to the grasp rotation
+        oTb.orientation = grasp_rotation
+        # Transform the pose to the map frame
+        oTmG = lt.transform_pose(oTb, "map")
+
+        rospy.logwarn("Placing now")
+        World.current_world.add_vis_axis(oTmG)
+        if execute:
+            MoveTCPMotion(oTmG, self.arm).resolve().perform()
+
+        tool_frame = robot_description.get_tool_frame(self.arm)
+        push_base = lt.transform_pose(oTmG, robot.get_link_tf_frame(tool_frame))
+        if robot.name == "hsrb":
+            z = 0.03
+            if self.grasp == "top":
+                z = 0.07
+            push_base.pose.position.z += z
+        # todo: make this for other robots
+        push_baseTm = lt.transform_pose(push_base, "map")
+
+        rospy.logwarn("Pushing now")
+        World.current_world.add_vis_axis(push_baseTm)
+        if execute:
+            MoveTCPMotion(push_baseTm, self.arm).resolve().perform()
+        if self.object_designator.type == "Metalplate":
+            # rTb = Pose([0,-0.1,0], [0,0,0,1],"base_link")
+            rospy.logwarn("sidepush monitoring")
+            TalkingMotion("sidepush.").resolve().perform()
+            side_push = Pose(
+                [push_baseTm.pose.position.x, push_baseTm.pose.position.y + 0.05, push_baseTm.pose.position.z],
+                [push_baseTm.orientation.x, push_baseTm.orientation.y, push_baseTm.orientation.z,
+                 push_baseTm.orientation.w])
+            try:
+                plan = MoveTCPMotion(side_push, self.arm) >> Monitor(monitor_func)
+                plan.perform()
+            except SensorMonitoringCondition:
+                rospy.logwarn("Open Gripper")
+                MoveGripperMotion(motion="open", gripper=self.arm).resolve().perform()
+
+
+@dataclass
+class PlaceGivenObjActionPerformable(ActionAbstract):
+    """
+    A class representing a designator for a place action of human given objects, allowing a robot to place a
+    human given object, that could not be picked up or were not found in the FOV.
+
+    This class encapsulates the details of the place action of human given objects, including the type of the object to
+    be placed, the arm to be used, the target_location to place the object and the grasp type. It defines the sequence
+    of operations for the robot to execute the place action of human given object, such as moving the arm holding the
+    object to the target_location, opening the gripper, and lifting the arm.
+    """
+
+    object_type: str
+    """
+    Object type describing the object that should be placed
+    """
+    arm: str
+    """
+    Arm that is currently holding the object
+    """
+    target_location: Pose
+    """
+    Pose in the world at which the object should be placed
+    """
+    grasp: str
+    """
+    Grasp that defines how to place the given object
+    """
+    on_table: Optional[bool]
+    """
+    When placing a plate needed to differentiate between placing in a dishwasher and placing on the table. 
+    Default is placing on a table.
+    """
+
+    @with_tree
+    def perform(self) -> None:
+        lt = LocalTransformer()
+        robot = World.robot
+        # oTm = Object Pose in Frame map
+        oTm = self.target_location
+
+        # TODO add for other robots
+        if self.object_type == "Metalplate" and robot.name == "hsrb":
+
+            grasp_rotation = robot_description.grasps.get_orientation_for_grasp("front")
+            oTb = lt.transform_pose(oTm, robot.get_link_tf_frame("base_link"))
+            oTb.orientation = grasp_rotation
+            oTmG = lt.transform_pose(oTb, "map")
+
+            rospy.logwarn("Placing now")
+            MoveTCPMotion(oTmG, self.arm).resolve().perform()
+            if self.on_table:
+                MoveTorsoAction([0.62]).resolve().perform()
+                kwargs = dict()
+
+                # taking in the predefined arm configuration for placing
+                if self.arm in ["left", "both"]:
+                    kwargs["left_arm_config"] = "place_plate"
+                    MoveArmJointsMotion(**kwargs).resolve().perform()
+
+                # turning the gripper downwards to better drop the plate
+                MoveJointsMotion(["wrist_flex_joint"], [-0.8]).resolve().perform()
+
+                # correct a possible sloped orientation
+                NavigateAction(
+                    [Pose([robot.get_pose().pose.position.x, robot.get_pose().pose.position.y, 0])]).resolve().perform()
+
+            MoveGripperMotion(motion="open", gripper="left").resolve().perform()
+
+            # Move away from the table
+            # todo generalize so that hsr is always moving backwards
+            NavigateAction(
+                [Pose([robot.get_pose().pose.position.x - 0.1, robot.get_pose().pose.position.y,
+                       0])]).resolve().perform()
+
+        # placing everything else except the Metalplate
+        else:
+            if self.grasp == "top":
+                oTm.pose.position.z += 0.05
+
+            grasp_rotation = robot_description.grasps.get_orientation_for_grasp(self.grasp)
+            oTb = lt.transform_pose(oTm, robot.get_link_tf_frame("base_link"))
+            oTb.orientation = grasp_rotation
+            oTmG = lt.transform_pose(oTb, "map")
+
+            rospy.logwarn("Placing now")
+            MoveTCPMotion(oTmG, self.arm).resolve().perform()
+
+            tool_frame = robot_description.get_tool_frame(self.arm)
+            push_base = lt.transform_pose(oTmG, robot.get_link_tf_frame(tool_frame))
+            if robot.name == "hsrb":
+                z = 0.03
+                if self.grasp == "top":
+                    z = 0.07
+                push_base.pose.position.z += z
+            # todo: make this for other robots
+            push_baseTm = lt.transform_pose(push_base, "map")
+
+            rospy.logwarn("Pushing now")
+            MoveTCPMotion(push_baseTm, self.arm).resolve().perform()
+
+            rospy.logwarn("Open Gripper")
+            MoveGripperMotion(motion="open", gripper=self.arm).resolve().perform()
+
+            rospy.logwarn("Lifting now")
+            liftingTm = push_baseTm
+            liftingTm.pose.position.z += 0.08
+            World.current_world.add_vis_axis(liftingTm)
+
+            MoveTCPMotion(liftingTm, self.arm).resolve().perform()
 
 
 @dataclass
@@ -432,15 +624,31 @@ class DetectActionPerformable(ActionAbstract):
     Detects an object that fits the object description and returns an object designator describing the object.
     """
 
-    object_designator: ObjectDesignatorDescription.Object
+    technique: str
+    """
+    Technique means how the object should be detected, e.g. 'color', 'shape', etc. 
+    Or 'all' if all objects should be detected
+    """
+
+    object_designator: Optional[ObjectDesignatorDescription.Object] = None
     """
     Object designator loosely describing the object, e.g. only type. 
+    """
+
+    state: Optional[str] = None
+    """
+    The state instructs our perception system to either start or stop the search for an object or human.
     """
     orm_class: Type[ActionAbstract] = field(init=False, default=ORMDetectAction)
 
     @with_tree
     def perform(self) -> None:
-        return DetectingMotion(object_type=self.object_designator.obj_type).perform()
+        if self.object_designator:
+            object_type = self.object_designator.type
+        else:
+            object_type = None
+        return DetectingMotion(technique=self.technique, object_type=object_type,
+                               state=self.state).resolve().perform()
 
 
 @dataclass
@@ -461,7 +669,7 @@ class OpenActionPerformable(ActionAbstract):
 
     @with_tree
     def perform(self) -> None:
-        GraspingActionPerformable(self.arm, self.object_designator).perform()
+        # GraspingActionPerformable(self.arm, self.object_designator).perform()
         OpeningMotion(self.object_designator, self.arm).perform()
 
         MoveGripperMotion("open", self.arm, allow_gripper_collision=True).perform()
@@ -509,24 +717,74 @@ class GraspingActionPerformable(ActionAbstract):
 
     @with_tree
     def perform(self) -> None:
-        if isinstance(self.object_desig, ObjectPart.Object):
-            object_pose = self.object_desig.part_pose
-        else:
-            object_pose = self.object_desig.world_object.get_pose()
+        # if isinstance(self.object_desig, ObjectPart.Object):
+        #     object_pose = self.object_desig.part_pose
+        # else:
+        #     object_pose = self.object_desig.world_object.get_pose()
+        # lt = LocalTransformer()
+        # gripper_name = robot_description.get_tool_frame(self.arm)
+        #
+        # object_pose_in_gripper = lt.transform_pose(object_pose,
+        #                                            World.robot.get_link_tf_frame(gripper_name))
+        #
+        # pre_grasp = object_pose_in_gripper.copy()
+        # pre_grasp.pose.position.x -= 0.1
+        #
+        # MoveTCPMotion(pre_grasp, self.arm).perform()
+        # MoveGripperMotion("open", self.arm).perform()
+        #
+        # MoveTCPMotion(object_pose, self.arm, allow_gripper_collision=True).perform()
+        # MoveGripperMotion("close", self.arm, allow_gripper_collision=True).perform()
+        #       # if isinstance(self.object_desig, ObjectPart.Object):
+        object_pose = self.object_desig
+
+        # Initialize the local transformer and robot reference
         lt = LocalTransformer()
-        gripper_name = robot_description.get_tool_frame(self.arm)
+        robot = World.robot  # Retrieve object and robot from designators
+        # Calculate the object's pose in the map frame
+        oTm = object_pose
+        # Todo only for suturo lab and hsr
+        oTm.pose.position.x -= 0.2
+        execute = True
+        grasp = "front"
+        # Determine the grasp orientation and transform the pose to the base link frame
+        grasp_rotation = robot_description.grasps.get_orientation_for_grasp(grasp)
+        oTb = lt.transform_pose(oTm, robot.get_link_tf_frame("base_link"))
+        # Set pose to the grasp rotation
+        oTb.orientation = grasp_rotation
 
-        object_pose_in_gripper = lt.transform_pose(object_pose,
-                                                   World.robot.get_link_tf_frame(gripper_name))
+        object_orientation = axis_angle_to_quaternion([1, 0, 0], 90)
+        q2 = [oTb.pose.orientation.x, oTb.pose.orientation.y, oTb.pose.orientation.z, oTb.pose.orientation.w]
+        new_qua = helper.multiply_quaternions(object_orientation, q2)
 
-        pre_grasp = object_pose_in_gripper.copy()
-        pre_grasp.pose.position.x -= 0.1
+        oTb.pose.orientation.x = new_qua[0]
+        oTb.pose.orientation.y = new_qua[1]
+        oTb.pose.orientation.z = new_qua[2]
+        oTb.pose.orientation.w = new_qua[3]
 
-        MoveTCPMotion(pre_grasp, self.arm).perform()
-        MoveGripperMotion("open", self.arm).perform()
+        tool_frame = robot_description.get_tool_frame(self.arm)
+        oTgt = lt.transform_pose(oTb, robot.get_link_tf_frame(tool_frame))
+        z = oTgt.pose.position.z
+        oTgt.pose.position.z = z - 0.01
+        oTmgt = lt.transform_pose(oTgt, "map")
+        oTgt.pose.position.z = z - 0.01
+        oTmG = lt.transform_pose(oTgt, "map")
 
-        MoveTCPMotion(object_pose, self.arm, allow_gripper_collision=True).perform()
-        MoveGripperMotion("close", self.arm, allow_gripper_collision=True).perform()
+        # Open the gripper before picking up the object
+        rospy.logwarn("Opening Gripper")
+        MoveGripperMotion(motion="open", gripper=self.arm).resolve().perform()
+
+        # Move to the pre-grasp position and visualize the action
+        rospy.logwarn("Picking up now")
+
+        World.current_world.add_vis_axis(oTmgt)
+        World.current_world.add_vis_axis(oTmG)
+        if execute:
+            MoveTCPMotion(oTmgt, self.arm).resolve().perform()  # MoveTCPMotion(oTmG, self.arm).resolve().perform()
+        rospy.sleep(5)
+        # Open the gripper before picking up the object
+        rospy.logwarn("Closing Gripper")
+        MoveGripperMotion(motion="close", gripper=self.arm).resolve().perform()
 
 
 @dataclass
@@ -592,3 +850,153 @@ class MoveAndPickUpPerformable(ActionAbstract):
         NavigateActionPerformable(self.standing_position).perform()
         FaceAtPerformable(self.object_designator.pose).perform()
         PickUpActionPerformable(self.object_designator, self.arm, self.grasp).perform()
+
+
+@dataclass
+class HeadFollowPerformable(ActionAbstract):
+    state: str
+    """
+    defines if the robot should start/stop looking at human
+    """
+
+    def perform(self) -> None:
+        HeadFollowMotion(self.state).resolve().perform()
+
+
+@dataclass
+class PouringActionPerformable(ActionAbstract):
+    """
+    Designator to let the robot perform a pouring action.
+    """
+
+    target_location: Pose
+    """
+    The Pose the robot should pour into.
+    """
+
+    arm: str
+    """
+    The arm that should be used for cutting.
+    """
+
+    direction: str
+    """
+    The direction that should be used for pouring. For example, 'left' or 'right'.
+    """
+
+    angle: float
+    """
+    the angle to move the gripper to.
+    """
+
+    @with_tree
+    def perform(self) -> None:
+        lt = LocalTransformer()
+        robot = World.robot
+
+        # TODO add for other robots
+        if robot.name == "hsrb":
+            # oTm = Object Pose in Frame map
+            if self.direction == "right":
+                oTm = Pose(
+                    [self.target_location.pose.position.x - 0.008, self.target_location.pose.position.y + 0.095,
+                     self.target_location.pose.position.z + 0.13], self.target_location.pose.orientation)  # y + 0.095
+                # oTm = Pose([self.target_location.pose.position.x - 0.3, self.target_location.pose.position.y + 0.1,
+                # self.target_location.pose.position.z + 0.1], self.target_location.pose.orientation)
+            else:
+                oTm = Pose(
+                    [self.target_location.pose.position.x - 0.008, self.target_location.pose.position.y - 0.15,
+                     self.target_location.pose.position.z + 0.13], self.target_location.pose.orientation)
+                # oTm = Pose([self.target_location.pose.position.x - 0.3, self.target_location.pose.position.y - 0.1,
+                # self.target_location.pose.position.z + 0.1], self.target_location.pose.orientation)
+            grasp_rotation = robot_description.grasps.get_orientation_for_grasp("front")
+            oTb = lt.transform_pose(oTm, robot.get_link_tf_frame("base_link"))
+            oTb.orientation = grasp_rotation
+            oTmG = lt.transform_pose(oTb, "map")
+
+            rospy.logwarn("Pouring now")
+            MoveTorsoAction([0.37]).resolve().perform()
+            MoveTCPMotion(oTmG, self.arm, allow_gripper_collision=False).resolve().perform()
+
+            # MoveTorsoAction([0.35]).resolve().perform()
+
+            # NavigateAction(
+            # [Pose([robot.get_pose().pose.position.x + 0.2, robot.get_pose().pose.position.y,
+            # 0], robot.get_pose().pose.orientation)]).resolve().perform()
+
+            # kwargs = dict()
+            #
+            # # taking in the predefined arm position for pouring
+            # if self.arm in ["left", "both"]:
+            #     kwargs["left_arm_config"] = "pour"
+            #     MoveArmJointsMotion(**kwargs).resolve().perform()
+
+            PouringMotion(self.direction, self.angle).resolve().perform()
+
+            rospy.sleep(3)
+
+            if self.direction == "right":
+                PouringMotion("left", 0).resolve().perform()
+            else:
+                PouringMotion("right", 0).resolve().perform()
+
+            # Move away from the table
+            NavigateAction(
+                [Pose([robot.get_pose().pose.position.x - 0.15, robot.get_pose().pose.position.y,
+                       0])]).resolve().perform()
+
+
+@dataclass
+class OpenDishwasherPerformable(ActionAbstract):
+    """
+    Opens a container like object
+
+    Can currently not be used
+    """
+
+    handle_name: str
+    """
+    Name of the handle to grasp for opening
+    """
+
+    door_name: str
+    """
+    Name of the door belonging to the handle
+    """
+
+    goal_state_half_open: float
+    """
+    goal state for opening the door half way
+    """
+
+    goal_state_full_open: float
+    """
+    goal state for opening the door fully
+    """
+
+    arm: str
+    """
+    Arm that should be used for opening the container
+    """
+
+    @with_tree
+    def perform(self) -> None:
+        # TODO: Implement this
+        return print("OpenDishwasherPerformable is not implemented yet")
+        # MoveGripperMotion("open", self.arm).resolve().perform()
+        # GraspingDishwasherHandleMotion(self.handle_name, self.arm).resolve().perform()
+        #
+        # MoveGripperMotion("close", self.arm).resolve().perform()
+        # HalfOpeningDishwasherMotion(self.handle_name, self.goal_state_half_open, self.arm).resolve().perform()
+        #
+        # MoveGripperMotion("open", self.arm).resolve().perform()
+        # MoveArmAroundMotion(self.handle_name, self.arm).resolve().perform()
+        #
+        # MoveGripperMotion("close", self.arm).resolve().perform()
+        # FullOpeningDishwasherMotion(self.handle_name, self.door_name, self.goal_state_full_open,
+        #                             self.arm).resolve().perform()
+        #
+        # ParkArmsAction([self.arm]).resolve().perform()
+        # MoveGripperMotion("open", self.arm).resolve().perform()
+        # plan = talk | park | gripper_open
+        # plan.perform()

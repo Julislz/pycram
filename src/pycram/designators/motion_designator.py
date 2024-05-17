@@ -3,9 +3,7 @@ from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 from .object_designator import ObjectDesignatorDescription, ObjectPart, RealObject
-from ..world import World
-from ..world_concepts.world_object import Object
-from ..designator import DesignatorError
+from ..designator import ResolutionError
 from ..orm.base import ProcessMetaData
 from ..plan_failures import PerceptionObjectNotFound
 from ..process_module import ProcessModuleManager
@@ -230,7 +228,7 @@ class DetectingMotion(BaseMotion):
                 f"Could not find an object with the type {self.object_type} in the FOV of the robot")
         if ProcessModuleManager.execution_type == "real":
             return RealObject.Object(world_object.name, world_object.obj_type,
-                                                  world_object, world_object.get_pose())
+                                     world_object, world_object.get_pose())
 
         return ObjectDesignatorDescription.Object(world_object.name, world_object.obj_type,
                                                   world_object)
@@ -381,3 +379,104 @@ class ClosingMotion(BaseMotion):
         session.add(motion)
 
         return motion
+
+
+@dataclass
+class HeadFollowMotion(BaseMotion):
+    """
+    Designator for moving head to human (to pose on topic /human_pose)
+    """
+
+    state: str
+    """
+    defines if robot should start/stop looking at humans
+    """
+
+    @with_tree
+    def perform(self):
+        pm_manager = ProcessModuleManager.get_manager()
+        return pm_manager.head_follow().execute(self)
+
+    def to_sql(self) -> ORMMotionDesignator:
+        pass
+
+    def insert(self, session: Session, *args, **kwargs) -> ORMMotionDesignator:
+        pass
+
+
+@dataclass
+class TalkingMotion(BaseMotion):
+    """
+    Designator for talking motion, robot says a sentence.
+    """
+
+    cmd: str
+    """
+    Sentence what the robot should say
+    """
+
+    def perform(self):
+        pm_manager = ProcessModuleManager.get_manager()
+        return pm_manager.talk().execute(self)
+
+    def to_sql(self) -> ORMMotionDesignator:
+        pass
+
+    def insert(self, session: Session, *args, **kwargs) -> ORMMotionDesignator:
+        pass
+
+
+@dataclass
+class PouringMotion(BaseMotion):
+    """
+    Designator for pouring
+    """
+
+    direction: str
+    """
+    The direction that should be used for pouring. For example, 'left' or 'right'
+    """
+    angle: float
+    """
+    the angle to move the gripper to
+    """
+
+    def perform(self):
+        pm_manager = ProcessModuleManager.get_manager()
+        return pm_manager.pour().execute(self)
+
+    def to_sql(self) -> ORMMotionDesignator:
+        pass
+
+    def insert(self, session: Session, *args, **kwargs) -> ORMMotionDesignator:
+        pass
+
+@dataclass
+class PointingMotion(BaseMotion):
+    """
+    Designator for pointing to given coordinates
+    Robot rotates one hand to pose
+    """
+
+    x_coordinate: float
+    """
+    x coordinate where the robot points to (in map frame)
+    """
+    y_coordinate: float
+    """
+    y coordinate where the robot points to (in map frame)
+    """
+    z_coordinate: float
+    """
+    z coordinate where the robot points to (in map frame)
+    """
+
+    def perform(self):
+        pm_manager = ProcessModuleManager.get_manager()
+        return pm_manager.pointing().execute(self)
+
+    def to_sql(self) -> ORMMotionDesignator:
+        pass
+
+    def insert(self, session: Session, *args, **kwargs) -> ORMMotionDesignator:
+        pass
