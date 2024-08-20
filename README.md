@@ -1,6 +1,6 @@
 ![](doc/images/pycram_logo.png)
 
-# What is PyCRAM
+# What is PyCRAM1
 
 PyCRAM is the Python 3 re-implementation of [CRAM](https://github.com/cram2/cram).
 PyCRAM is a toolbox for designing, implementing and deploying software on autonomous robots. The framework provides various tools and libraries for aiding in robot software development as well as geometric reasoning and fast simulation mechanisms to develop cognition-enabled control programs that achieve high levels of robot autonomy.
