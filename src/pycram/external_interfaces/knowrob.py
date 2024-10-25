@@ -9,6 +9,9 @@ import rosservice
 
 from typing import Dict, List, Union
 
+interf = None
+is_init = False
+
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(SCRIPT_DIR, os.pardir, os.pardir, "neem-interface", "src"))
 
@@ -29,6 +32,26 @@ from pycram import ch
 
 logger.addHandler(ch)
 logger.setLevel(logging.DEBUG)
+
+
+def init_knowrob_interface():
+    """
+    Initializes the knowrob interface.
+    Can not be used at the moment.
+    """
+    global interf
+    global is_init
+    if is_init:
+        return
+    try:
+        import rospy
+        from suturo_knowledge import interf_q
+        interf = interf_q.InterfacePlanningKnowledge()
+        is_init = True
+        rospy.loginfo("Successfully initialized Knowrob interface")
+
+    except ModuleNotFoundError as e:
+        rospy.logwarn("Failed to import Knowrob messages, knowrob interface could not be initialized")
 
 
 def all_solutions(q):
@@ -159,8 +182,42 @@ def get_table_pose(table_name):
     rospy.wait_for_service('pose_server')
     try:
         service = rospy.ServiceProxy('pose_server', ObjectPose)
+<<<<<<< HEAD
         table_pose = service(table_name)#
         return table_pose
     except rospy.ServiceException:
         rospy.logerr("Service call failed")
         pass
+=======
+        table_pose = service(table_name)
+        return table_pose
+    except rospy.ServiceException:
+        rospy.logerr("Service call failed")
+        pass
+
+
+def get_location_pose(location_name):
+    """
+    Can not be used yet.
+    Gives the pose for a given location back for instance for perceiving, placing, opening etc.
+    """
+    try:
+        location_pos = interf.get_pose(location_name)
+        return location_pos
+    except:
+        rospy.logerr("Failed to contact knowrob")
+        pass
+
+
+def get_handle_pos(handle):
+    """
+      Can not be used yet.
+      Gives the pose for a given handle back for instance for opening a container.
+    """
+    try:
+        handle_pos = interf.get_pose_of_handle(handle)
+        return handle_pos
+    except:
+        rospy.logerr("Failed to contact knowrob")
+        pass
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa

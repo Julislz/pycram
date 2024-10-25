@@ -11,12 +11,21 @@ from deprecated import deprecated
 
 def sort_objects(obj_dict: dict, wished_sorted_obj_list: list):
     """
+<<<<<<< HEAD
     Transforms the given object dictionary to a distance sorted list.
     The Metalplate, if seen, is arranged as the first object in the list.
 
     :param obj_dict: tupel of State and dictionary of founded objects in the FOV
     :param wished_sorted_obj_list: list of object types we like to keep
     :return: distance sorted list of seen and wished to keep objects
+=======
+    keeps only wished objects of the seen objects and sorts the returned list of objects
+    according to the order of the given wished_sorted_obj_list.
+
+    :param obj_dict: tupel of State and dictionary of founded objects in the FOV
+    :param wished_sorted_obj_list: list of object types we like to keep with the wished order
+    :return: sorted list of seen and wished to keep objects in the same order of the given list
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     """
     tuples_list = []
     sorted_objects = []
@@ -26,11 +35,25 @@ def sort_objects(obj_dict: dict, wished_sorted_obj_list: list):
 
     # cut of the given State and keep the dictionary
     first, *remaining = obj_dict
+<<<<<<< HEAD
     # calculate euclidian distance for all found object in a list of tupels
     for dictionary in remaining:
         for value in dictionary.values():
             if value.type in wished_sorted_obj_list:
                 tuples_list.append((value, wished_sorted_obj_list.index(value.type)))
+=======
+    for dictionary in remaining:
+        for value in dictionary.values():
+            object_type = value.type
+            if value.type in ["Mueslibox", "Cornybox", "Cerealbox", "Crackerbox"]:
+                object_type = "Cerealbox"
+
+            if value.type in ["Spoon", "Fork", "Knife", "Plasticknife"]:
+                object_type = "Spoon"
+
+            if object_type in wished_sorted_obj_list:
+                tuples_list.append((value, wished_sorted_obj_list.index(object_type)))
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 
     sorted_objects = [x[0] for x in sorted(tuples_list, key=lambda index: index[1])]
 
@@ -44,6 +67,14 @@ def sort_objects(obj_dict: dict, wished_sorted_obj_list: list):
 
 
 def get_bowl_list(obj_dict: dict):
+<<<<<<< HEAD
+=======
+    """
+    searches in a dictionary of objects for all bowls and returns them
+    :param obj_dict: tupel of State and dictionary of founded objects in the FOV
+    :return: list of found bowls
+    """
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     objects_list = []
 
     if len(obj_dict) == 0:
@@ -58,6 +89,14 @@ def get_bowl_list(obj_dict: dict):
 
 
 def get_bowl(obj_dict: dict):
+<<<<<<< HEAD
+=======
+    """
+    searches in a dictionary of objects for a bowl and returns it
+    :param obj_dict: tupel of State and dictionary of founded objects in the FOV
+    :return: the found bowl or None
+    """
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     if len(obj_dict) == 0:
         return None
 
@@ -69,6 +108,7 @@ def get_bowl(obj_dict: dict):
     return None
 
 
+<<<<<<< HEAD
 def get_free_spaces(obj_dict):
     free_places_tuples = []
     sorted_places = []
@@ -77,6 +117,22 @@ def get_free_spaces(obj_dict):
         return sorted_places
 
     for location in obj_dict:
+=======
+def get_free_spaces(location_list: list):
+    """
+    looks in a list of regions for regions that are free and returns them
+
+    :param location_list: a list of regions
+    :return: sorted list of found free regions
+    """
+    free_places_tuples = []
+    sorted_places = []
+
+    if len(location_list) == 0:
+        return sorted_places
+
+    for location in location_list:
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
         print(f"location: {location}, type: {type(location)}")
         seperated_location = location.split(',')
         occupied = eval(seperated_location[1])
@@ -98,3 +154,46 @@ def get_free_spaces(obj_dict):
     print(test_list)
 
     return sorted_places
+<<<<<<< HEAD
+=======
+
+
+def try_pick_up(robot: BulletWorld.robot, obj: ObjectDesignatorDescription.Object, grasps: str):
+    """
+    Picking up any object with failure handling.
+
+    :param robot: the robot
+    :param obj: the object that should be picked up
+    :param grasps: how to pick up the object
+    """
+    try:
+        PickUpAction(obj, ["left"], [grasps]).resolve().perform()
+    except (EnvironmentUnreachable, GripperClosedCompletely):
+        TalkingMotion("Try pick up again").resolve().perform()
+        # after failed attempt to pick up the object, the robot moves 30cm back on y pose
+        NavigateAction(
+            [Pose([robot.get_pose().pose.position.x - 0.3, robot.get_pose().pose.position.y, 0],
+                  [0, 0, 0, 1])]).resolve().perform()
+        ParkArmsAction([Arms.LEFT]).resolve().perform()
+        MoveGripperMotion(motion="open", gripper="left").resolve().perform()
+        # try to detect the object again
+        LookAtAction(targets=[Pose([obj.pose.position.x, obj.pose.position.y, 0.21], [0, 0, 0, 1])]).resolve().perform()
+        object_desig = DetectAction(technique='all').resolve().perform()
+        new_object = sort_objects(object_desig, [obj.type])[0]
+
+        # second try to pick up the object
+        try:
+            TalkingMotion("try again").resolve().perform()
+            PickUpAction(new_object, ["left"], [grasps]).resolve().perform()
+        # ask for human interaction if it fails a second time
+        except (EnvironmentUnreachable, GripperClosedCompletely):
+            NavigateAction(
+                [Pose([robot.get_pose().pose.position.x - 0.3, robot.get_pose().pose.position.y, 0],
+                      [0, 0, 0, 1])]).resolve().perform()
+            ParkArmsAction([Arms.LEFT]).resolve().perform()
+            MoveGripperMotion(motion="open", gripper="left").resolve().perform()
+            TalkingMotion(f"Can you please give me the {obj.type} in the shelf?").resolve().perform()
+            MoveGripperMotion("open", "left").resolve().perform()
+            time.sleep(4)
+            MoveGripperMotion("close", "left").resolve().perform()
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa

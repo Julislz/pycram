@@ -1,0 +1,3 @@
+<launch>
+    <node name="cml_pycram" pkg="pycram" type="cml.py" output="screen"/>
+</launch>

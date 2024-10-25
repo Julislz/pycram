@@ -1,0 +1,22 @@
+# Start the bringup
+roslaunch suturo_bringup envi_bringup
+
+# Start giskard
+roslaunch giskardpy giskardpy_hsr_real_vel.launch
+
+# Start robokudo
+robokudo_venv
+rosrun robokudo main.py _ae=serve_breakfast _ros_pkg=milestone1
+
+# To be able to perceive free poses go to the following folder
+cd ~/suturo23_24/robokudo_ws/src/suturo_perception2324/milestone1/src/milestone1
+
+# launch popcornTable
+roslaunch popcornTable.launch
+
+# After demo don't forget to restart at least giskard before relaunching the demo!
+
+# In case where not all objects should be perceived, picked up and placed:
+check the order of the wished_sorted_obj_list. It should looks as follows:
+wished_sorted_obj_list = ["Metalbowl", "Cerealbox", "Milkpackja", "Spoon"]
+you find this value at the beginning of the demo file

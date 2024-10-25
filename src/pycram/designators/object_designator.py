@@ -1,4 +1,5 @@
 import dataclasses
+<<<<<<< HEAD
 
 from std_msgs.msg import String
 from typing_extensions import List, Optional, Callable
@@ -9,6 +10,21 @@ from ..designator import ObjectDesignatorDescription
 from ..orm.base import ProcessMetaData
 from ..orm.object_designator import (BelieveObject as ORMBelieveObject, ObjectPart as ORMObjectPart)
 from pycram.datastructures.pose import Pose
+=======
+from typing import List, Union, Optional, Callable, Tuple, Iterable
+
+import rospy
+import sqlalchemy.orm
+from geometry_msgs.msg import PoseStamped
+
+from ..bullet_world import BulletWorld, Object as BulletWorldObject
+from ..designator import DesignatorDescription, ObjectDesignatorDescription
+from ..orm.base import ProcessMetaData
+from ..orm.object_designator import (BelieveObject as ORMBelieveObject, ObjectPart as ORMObjectPart)
+from ..pose import Pose
+from pycram.fluent import Fluent
+from std_msgs.msg import String
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 from ..external_interfaces.robokudo import query
 
 
@@ -173,6 +189,12 @@ class RealObject(ObjectDesignatorDescription):
             for world_obj in World.get_object_by_type(obj_desig.obj_type):
                 obj_desig.world_object = world_obj
                 yield obj_desig
+<<<<<<< HEAD
+=======
+                # if bullet_obj.get_pose().dist(obj_deisg.pose) < 0.05:
+                #     obj_deisg.bullet_world_object = bullet_obj
+                #     yield obj_deisg
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 
 
 class HumanDescription:
@@ -195,6 +217,10 @@ class HumanDescription:
         self.fav_drink = fav_drink
         self.pose = pose
         self.attributes = attributes
+<<<<<<< HEAD
+=======
+        self.id = -1
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 
         # self.human_pose_sub = rospy.Subscriber("/human_pose", PoseStamped, self.human_pose_cb)
 
@@ -209,6 +235,17 @@ class HumanDescription:
     # rospy.loginfo("done cb")
     # rospy.sleep(10)
 
+<<<<<<< HEAD
+=======
+    def set_id(self, new_id: int):
+        """
+        function for changing id of human
+        is given by perception with face recognition
+        :param new_id: new id of human
+        """
+        self.id = new_id
+
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     def set_name(self, new_name):
         """
         function for changing name of human
@@ -237,3 +274,56 @@ class HumanDescription:
         :param attribute_list: list with attributes: gender, headgear, kind of clothes, bright/dark clothes
         """
         self.attributes = attribute_list[1]
+<<<<<<< HEAD
+=======
+
+
+class ShelfCompartmentDescription:
+    """
+    Class that represents a Compartment in a shelf but in cool and convenient
+    """
+
+    def __init__(self, height: float, placing_areas: List[List[float]], category=None):
+        """
+        :param height: height of compartment
+        :param placing_areas: x/y-coordinate of possible placing range [x min, x max]
+        :param category: category of object already standing in the compartment
+        """
+
+        if category is None:
+            category = []
+        else:
+            self.category = category
+
+        self.height = height
+        self.placing_areas = placing_areas
+        self.category = category
+        # list that tracks if area x is occupied
+        # we assume that the compartment is empty, therefore everything is set to False
+        self.area_free = []
+        for i in range(len(placing_areas)):
+            self.area_free.append(False)
+
+    def set_area_occupied(self, area: int, occ: bool):
+        self.area_free[area] = occ
+
+    def get_area_occupied(self, area: int):
+        return self.area_free[area]
+
+    def get_free_area(self):
+        for area in range(len(self.placing_areas)):
+            if not self.area_free[area]:
+                # return arithmetic mean of area
+                return (self.placing_areas[area][0] + self.placing_areas[area][1]) / 2
+        return -1
+
+    def get_placing_pose(self, obj_category: str):
+        for cat in self.category:
+            if cat == obj_category:
+                placing_pose = self.get_free_area()
+                if placing_pose != -1:
+                    return placing_pose
+                else:
+                    return -1
+        return -1
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa

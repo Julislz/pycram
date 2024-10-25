@@ -117,9 +117,12 @@ class GraspingAction(ObjectMixin, Action):
 
     id: Mapped[int] = mapped_column(ForeignKey(f'{Action.__tablename__}.id'), primary_key=True, init=False)
     arm: Mapped[str]
+<<<<<<< HEAD
 
 
 class FaceAtAction(PoseMixin, Action):
     """ORM Class of pycram.designators.action_designator.FaceAtAction."""
 
     id: Mapped[int] = mapped_column(ForeignKey(f'{Action.__tablename__}.id'), primary_key=True, init=False)
+=======
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa

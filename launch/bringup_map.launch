@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="map_name" default="map/final_projectroom_map.yaml" />
+ 
+
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find pycram)/launch/$(arg map_name)" />
+
+
+</launch>

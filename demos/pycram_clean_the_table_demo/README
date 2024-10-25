@@ -1,0 +1,24 @@
+# Start the bringup
+roslaunch suturo_bringup envi_bringup
+
+# Start giskard
+roslaunch giskardpy giskardpy_hsr_real_vel.launch
+
+# Start robokudo
+robokudo_venv
+rosrun robokudo main.py _ae=clean_table _ros_pkg=milestone1
+
+# It is also possible to start a specific roslaunch, to launch everything
+roslaunch pycram clean_the_table.launch
+
+# Start the demo file clean_table_demo_ms3.py
+
+# After demo don't forget to restart at least giskard before relaunching the demo!
+
+
+# In case where not all objects should be perceived, picked up and placed:
+change values in wished_sorted_obj_list = ["Metalplate", "Metalbowl", "Metalmug", "Fork", "Spoon"]
+you find this value at the beginning of the demo file
+
+# When opening the dishwasher fails because of wrist_flex_joint or arm_flex_joint:
+change goal_state_half_open in OpenDishwasherAction(handle_name, door_name, goal_state_half_open = 0.6, goal_state_full_open = 1.4, ["left"]).resolve().perform()

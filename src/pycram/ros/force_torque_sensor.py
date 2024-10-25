@@ -242,4 +242,8 @@ class ForceTorqueSensor:
         derivative.wrench.torque.y = before.wrench.torque.y - after.wrench.torque.y
         derivative.wrench.torque.z = before.wrench.torque.z - after.wrench.torque.z
 
+<<<<<<< HEAD
         return derivative
+=======
+        return derivative
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa

@@ -1,0 +1,7 @@
+<launch>
+<include file="$(find suturo_bringup)/launch/suturo_bringup.launch"/>
+<node name="run_clean_table_node" pkg="pycram" type="clean_the_table_starter_script" output="screen"/>
+<include file="$(find giskardpy)/launch/giskardpy_hsr_real_vel.launch"/>
+
+
+</launch>

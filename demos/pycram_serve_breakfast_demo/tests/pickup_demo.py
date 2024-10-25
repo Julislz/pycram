@@ -49,8 +49,11 @@ giskardpy.sync_worlds()
 robot.set_color([0.5, 0.5, 0.9, 1])
 
 
+<<<<<<< HEAD
 # Define orientation for objects
 object_orientation = axis_angle_to_quaternion([0, 0, 1], 180)
+=======
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 
 
 
@@ -58,7 +61,11 @@ giskardpy.giskard_wrapper.avoid_all_collisions()
 
 
 with ((real_robot)):
+<<<<<<< HEAD
     TalkingMotion("Starting demo").resolve().perform()
+=======
+    # TalkingMotion("Starting demo").resolve().perform()
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     rospy.loginfo("Starting demo")
     # ParkArmsAction([Arms.LEFT]).resolve().perform()
     #print(f"orientation: {robot.get_pose().pose.orientation}, position: {robot.get_pose().pose.positioen}")
@@ -66,11 +73,20 @@ with ((real_robot)):
     #client = actionlib.ActionClient(server_name='move_base/move', action_name=MoveBaseAction)
     #NavigateAction(target_locations=[Pose([2.24, 1.9, 0], [0, 0, 0.7, 0.7])]).resolve().perform()
     #MoveTorsoAction([0.2]).resolve().perform()
+<<<<<<< HEAD
     LookAtAction(targets=[Pose([5.1, 2.1, 0.21], [0, 0, 0, 1])]).resolve().perform()
     object_desig = DetectAction(technique='location', state='long_table').resolve().perform()
     sorted_places = get_free_spaces(object_desig[1])
     # object_desig = DetectAction(technique='all').resolve().perform()
     # sort_objects = sort_objects(object_desig, wished_sorted_obj_list=["Metalbowl", "mueslibox", "Spoon", "Milkpackja"])
+=======
+    # LookAtAction(targets=[Pose([5.1, 2.1, 0.21], [0, 0, 0, 1])]).resolve().perform()
+    # object_desig = DetectAction(technique='location', state='popcorn_table').resolve().perform()
+    # sorted_places = get_free_spaces(object_desig[1])
+    object_desig = DetectAction(technique='all').resolve().perform()
+    sort_objects = sort_objects(object_desig, wished_sorted_obj_list=["Metalbowl", "Cerealbox", "Milkpackja", "Spoon"])
+    # try_pick_up(robot, sort_objects[0], "top")
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     # bowl = get_bowl(object_desig)
     # print(bowl)
     # sort_objects = sort_objects(robot, object_desig, wished_sorted_obj_list=["Spoon"])

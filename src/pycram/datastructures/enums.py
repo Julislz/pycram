@@ -70,6 +70,7 @@ class State(Enum):
     RUNNING = 2
     INTERRUPTED = 3
 
+<<<<<<< HEAD:src/pycram/datastructures/enums.py
 
 class Shape(Enum):
     """
@@ -99,9 +100,36 @@ class State(Enum):
     RUNNING = 2
     INTERRUPTED = 3
 
+=======
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa:src/pycram/enums.py
 class FilterConfig(Enum):
     """
     Declare existing filter methods.
     Currently supported: Butterworth
     """
+<<<<<<< HEAD:src/pycram/datastructures/enums.py
     butterworth = 1
+=======
+    butterworth = 1
+
+class ImageEnum(Enum):
+    HI = 0
+    TALK = 1
+    DISH = 2
+    DONE = 3
+    DROP = 4
+    HANDOVER = 5
+    ORDER = 6
+    PICKING = 7
+    PLACING = 8
+    REPEAT = 9
+    SEARCH = 10
+    WAVING = 11
+    FOLLOWING = 12
+    DRIVINGBACK = 13
+    PUSHBUTTONS = 14
+    FOLLOWSTOP = 15
+    JREPEAT = 16
+    SOFA = 17
+    INSPECT = 18
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa:src/pycram/enums.py

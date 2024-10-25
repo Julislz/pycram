@@ -19,7 +19,7 @@ process_module -- implementation of process modules.
 """
 
 from . import utils
-
+import builtins
 import logging
 import logging.config
 
@@ -35,3 +35,14 @@ formatter = logging.Formatter('%(levelname)s - %(name)s  - Line:%(lineno)d - %(m
 ch.setFormatter(formatter)
 
 #from .resolver import *
+
+
+try:
+    builtins.profile  # type: ignore
+except AttributeError:
+    # No line profiler, provide a pass-through version
+    def profile(func):
+        return func
+
+
+    builtins.profile = profile  # type: ignore

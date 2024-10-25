@@ -26,4 +26,8 @@ class Butterworth(CustomFilter):
         self.b, self.a = butter(self.order, cutoff / (0.5 * fs), btype='low')
 
     def filter(self, data: list):
+<<<<<<< HEAD
         return lfilter(self.b, self.a, data)
+=======
+        return lfilter(self.b, self.a, data)
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa

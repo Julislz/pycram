@@ -91,7 +91,11 @@ with real_robot:
     #MoveJointsMotion(["arm_lift_joint"], [0.1]).resolve().perform()
 
     #print(robot.get_complete_joint_state())
+<<<<<<< HEAD
     TalkingMotion("starting test").resolve().perform()
+=======
+    TalkingMotion("starting pp.py").resolve().perform()
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     pre_place()
 
     #placing(100)
@@ -101,7 +105,11 @@ with real_robot:
     if placing_sequence:
 
         pre_place()
+<<<<<<< HEAD
         TalkingMotion("starting test").resolve().perform()
+=======
+        TalkingMotion("starting pp.py").resolve().perform()
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 
         # rospy.sleep(1.5)
         # pose2 = Pose([2.23, 1.96, 0.0], [0, 0, 0.68, 0.731])

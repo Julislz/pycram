@@ -173,9 +173,12 @@ def quaternion_rotate(q: List, v: List) -> List:
     :param v: A vector that should be rotated by q
     :return: V rotated by Q as a quaternion
     """
+    q = (q.x, q.y, q.z, q.w)
     q_conj = (-q[0], -q[1], -q[2], q[3])  # Conjugate of the quaternion
     v_quat = (*v, 0)  # Represent the vector as a quaternion with w=0
     return multiply_quaternions(multiply_quaternions(q, v_quat), q_conj)[:3]
+
+
 
 
 def multiply_poses(pose1: Pose, pose2: Pose) -> Tuple:
@@ -195,3 +198,46 @@ def multiply_poses(pose1: Pose, pose2: Pose) -> Tuple:
     new_pos = np.add(pos1, quaternion_rotate(quat1, pos2))
 
     return new_pos, new_quat
+
+def urdf_to_string(urdf_file_path):
+    try:
+        with open(urdf_file_path, 'r') as file:
+            urdf_string = file.read()
+        return urdf_string
+    except FileNotFoundError:
+        print(f"The file {urdf_file_path} was not found.")
+        return None
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+
+import math
+
+
+def norm_quaternion(q):
+    """Return the norm (magnitude) of the quaternion q."""
+    x, y, z, w = q
+    return math.sqrt(x ** 2 + y ** 2 + z ** 2 + w ** 2)
+
+
+def normalize_quaternion(q):
+    """Return the normalized quaternion q."""
+    x, y, z, w = q
+    norm = norm_quaternion(q)
+    return (x / norm, y / norm, z / norm, w / norm)
+
+
+def quaternion_to_angle(q):
+    """Convert a quaternion to an angle of rotation in degrees."""
+    # Normalize the quaternion
+    q = normalize_quaternion(q)
+
+    # Extract the scalar part (w) of the quaternion
+    w = q[3]
+
+    # Compute the angle in radians and then convert to degrees
+    angle_radians = 2 * math.acos(w)
+    angle_degrees = math.degrees(angle_radians)
+
+    return angle_degrees

@@ -132,7 +132,11 @@ class RetryMonitor(FailureHandling):
         This method attempts to perform the Monitor + plan specified in the designator_description.
         If the action fails, it is retried up to max_tries times. If all attempts fail,
         the last exception is raised. In every loop, we need to clear the kill_event, and set all
+<<<<<<< HEAD
         relevant 'interrupted' variables too False to make sure the Monitor and plan are executed
+=======
+        relevant 'interrupted' variables to False, to make sure the Monitor and plan are executed
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
         properly again
 
         Raises:
@@ -174,4 +178,8 @@ class RetryMonitor(FailureHandling):
                     tries += 1
                     if tries >= self.max_tries:
                         raise e
+<<<<<<< HEAD
         return status, flatten(res)
+=======
+        return status, flatten(res)
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa

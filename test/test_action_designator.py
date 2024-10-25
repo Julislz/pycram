@@ -84,7 +84,7 @@ class TestActionDesignatorGrounding(BulletWorldTestCase):
         self.assertEqual(description.ground().target, Pose([1, 0, 1]))
         with simulated_robot:
             description.resolve().perform()
-        # TODO: Needs a way to test the approximate looking direction of the robot
+        # TODO: Needs a way to pp.py the approximate looking direction of the robot
 
     def test_detect(self):
         self.kitchen.set_pose(Pose([10, 10, 0]))

@@ -24,13 +24,20 @@ class HSRBDescription(RobotDescription):
         # Neck
         neck_links = ["head_pan_link", "head_tilt_link"]
         neck_joints = ["head_pan_joint", "head_tilt_joint"]
+<<<<<<< HEAD:src/pycram/robot_descriptions/hsrb_description.py
         neck_forward = {"forward": [0.0, 0.0], "down": [0.0, 0, -0.7]}
+=======
+        neck_forward = {"forward": [0.0, 0.0], "down": [0.0, 0, 0]}
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa:src/pycram/robot_descriptions/hsr_description.py
         neck_chain = ChainDescription("neck", neck_joints, neck_links, static_joint_states=neck_forward)
         self.add_chain("neck", neck_chain)
         # Arm
         arm_joints = ["arm_flex_joint", "arm_roll_joint", "wrist_flex_joint", "wrist_roll_joint"]
         arm_links = ["arm_flex_link", "arm_roll_link", "wrist_flex_link", "wrist_roll_link"]
-        arm_carry = {"park": [0, 1.5, -1.85, 0]}
+        arm_carry = {"park": [0, -1.5, -1.50, 0]}
+        arm_placing_plate = {"place_plate": [-1.8, 0, -0.5, -1.5]}
+        arm_pick_up_paper = {"pick_up_paper": [-2.0, -0.17, -0.14, -0.9]}
+        arm_open_dishwasher = {"open_dishwasher": [-1.2, -0.1, -0.28, -1.51]}
         gripper_links = ["hand_l_distal_link", "hand_l_spring_proximal_link", "hand_palm_link",
                          "hand_r_distal_link", "hand_r_spring_proximal_link", "hand_gripper_tool_frame"]
         gripper_joints = ["hand_l_proximal_joint", "hand_r_proximal_joint", "hand_motor_joint"]
@@ -39,14 +46,48 @@ class HSRBDescription(RobotDescription):
                                      gripper_convergence_delta=0.001)
         arm_chain = ChainDescription("left", arm_joints, arm_links, static_joint_states=arm_carry)
         arm_inter = InteractionDescription(arm_chain, "wrist_roll_link")
+<<<<<<< HEAD:src/pycram/robot_descriptions/hsrb_description.py
         arm_manip = ManipulatorDescription(arm_inter, tool_frame="hand_gripper_tool_frame", gripper_description=gripper)
         self.add_chain("left", arm_manip)
+=======
+        arm_manip = ManipulatorDescription(arm_inter, tool_frame="hand_gripper_tool_frame",
+                                           gripper_description=gripper)
+
+        arm_chain_open = ChainDescription("open_dishwasher", arm_joints, arm_links, static_joint_states=arm_open_dishwasher)
+        arm_inter_open = InteractionDescription(arm_chain_open, "wrist_roll_link")
+        arm_manip_open = ManipulatorDescription(arm_inter_open, tool_frame="hand_gripper_tool_frame",
+                                           gripper_description=gripper)
+
+        arm_chain_placing_plate = ChainDescription("placing_pos", arm_joints, arm_links,
+                                      static_joint_states=arm_placing_plate)
+        arm_inter_placing_plate = InteractionDescription(arm_chain_placing_plate, "wrist_roll_link")
+        arm_manip_placing_plate = ManipulatorDescription(arm_inter_placing_plate, tool_frame="hand_gripper_tool_frame",
+                                            gripper_description=gripper)
+
+        arm_chain_paper = ChainDescription("pick_up_paper_conf", arm_joints, arm_links, static_joint_states=arm_pick_up_paper)
+        arm_inter_paper = InteractionDescription(arm_chain_paper, "wrist_roll_link")
+        arm_manip_paper = ManipulatorDescription(arm_inter_paper, tool_frame="hand_gripper_tool_frame",
+                                                   gripper_description=gripper)
+
+        self.add_chains({"placing_pos": arm_manip_placing_plate,"pick_up_paper_conf": arm_manip_paper, "open_dishwasher": arm_manip_open, "left": arm_manip})
+    
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa:src/pycram/robot_descriptions/hsr_description.py
         self.add_static_gripper_chains("left", {"open": [0.3], "close": [0.0]})
         self.grasps = GraspingDescription(
             {"front": [-1, 0, -1, 0],
              "left": [0, -1, 1, 0],
              "right": [0, -1, -1, 0.0],
+<<<<<<< HEAD:src/pycram/robot_descriptions/hsrb_description.py
              "top": [-1, 0, 0, 0]})
 
     def get_camera_frame(self, name="head_center_camera_frame"):
         return super().get_camera_frame(name)
+=======
+             "top": [-1, 0, 0, 0],
+             "front-angled": [-0.76, 0, -0.64, 0]})
+
+
+    def get_camera_frame(self, name="head_center_camera"):
+        # TODO: Hacky since only one optical camera frame from pr2 is used
+        return super().get_camera_frame(name)
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa:src/pycram/robot_descriptions/hsr_description.py

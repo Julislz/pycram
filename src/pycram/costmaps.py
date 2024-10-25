@@ -9,7 +9,16 @@ from dataclasses import dataclass
 import numpy as np
 import psutil
 import rospy
+<<<<<<< HEAD
 from matplotlib import colors
+=======
+# import matplotlib.pyplot as plt
+# from matplotlib import colors
+import psutil
+import time
+from .bullet_world import BulletWorld, Use_shadow_world, Object
+from .bullet_world_reasoning import _get_images_for_target
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 from nav_msgs.msg import OccupancyGrid, MapMetaData
 
 from .world import UseProspectionWorld
@@ -733,7 +742,8 @@ class SemanticCostmap(Costmap):
     table surface.
     """
 
-    def __init__(self, object, urdf_link_name, size=100, resolution=0.02, world=None):
+    def __init__(self, object, urdf_link_name, size=100, resolution=0.02, world=None, margin_cm=0.2,
+                 inner_margin_cm=0.1):
         """
         Creates a semantic costmap for the given parameter. The semantic costmap will be on top of the link of the given
         Object.
@@ -751,24 +761,62 @@ class SemanticCostmap(Costmap):
         self.height: int = 0
         self.width: int = 0
         self.map: np.ndarray = []
+        self.margin_cm = margin_cm
+        self.inner_margin_cm = inner_margin_cm
         self.generate_map()
-
         Costmap.__init__(self, resolution, self.height, self.width, self.origin, self.map)
+
+    import numpy as np
 
     def generate_map(self) -> None:
         """
-        Generates the semantic costmap according to the provided parameters. To do this the axis aligned bounding box (AABB)
-        for the link name will be used. Height and width of the final Costmap will be the x and y sizes of the AABB.
+        Generates the semantic costmap according to the provided parameters, with a 20 cm margin excluded from the outer
+        edges of the map. The central part of the map is used, while the outer 20 cm margin is marked to indicate it's
+        not part of the semantic costmap.
         """
+<<<<<<< HEAD
         min_p, max_p = self.get_aabb_for_link().get_min_max_points()
         self.height = int((max_p.x - min_p.x) // self.resolution)
         self.width = int((max_p.y - min_p.y) // self.resolution)
         self.map = np.ones((self.height, self.width))
 
     def get_aabb_for_link(self) -> AxisAlignedBoundingBox:
+=======
+        aabb_min, aabb_max = self.get_aabb_for_link()  # Get the axis-aligned bounding box for the link
+        margin = int(self.margin_cm / self.resolution)  # Convert 20 cm margin to pixels based on the resolution
+
+        # Calculate height and width considering the resolution
+        self.height = int((aabb_max[0] - aabb_min[0]) // self.resolution)
+        self.width = int((aabb_max[1] - aabb_min[1]) // self.resolution)
+
+        # Initialize the map with ones
+        self.map = np.ones((self.height, self.width))
+
+        # Apply margin from one side (e.g., only the top)
+        if margin < self.height:
+            self.map[:margin, :] = 0  # Top margin
+
+        # Apply margin from one side (e.g., only the left)
+        if margin < self.width:
+            self.map[:, :margin] = 1
+            # # Right margin
+            self.map[:, -margin:] = 1
+
+        # Invert the map values: 0s become 1s, and everything else becomes 0
+        self.map = 1 - self.map
+
+        # Trim the left and right sides, only keep points before the 0s
+        non_zero_cols = np.where(self.map.any(axis=0))[0]
+        if len(non_zero_cols) > 0:
+            left_trim = 2000  # Adjust this value to trim more from the left
+            right_trim = 20  # Adjust this value to trim more from the right
+            self.map = self.map[:, max(0, non_zero_cols[0] - left_trim):non_zero_cols[-1] + 1 + right_trim]
+
+    def get_aabb_for_link(self) -> Tuple[List[float], List[float]]:
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
         """
-        Returns the axis aligned bounding box (AABB) of the link provided when creating this costmap. To try and let the
-        AABB as close to the actual object as possible, the Object will be rotated such that the link will be in the
+        Returns the axis-aligned bounding box (AABB) of the link provided when creating this costmap. To try and let the
+        AABB as close to the actual object as possible, the object will be rotated such that the link will be in the
         identity orientation.
 
         :return: Two points in world coordinate space, which span a rectangle
@@ -781,6 +829,7 @@ class SemanticCostmap(Costmap):
             prospection_object.set_orientation(inverse_trans.to_pose())
             return self.link.get_axis_aligned_bounding_box()
 
+<<<<<<< HEAD
 
 cmap = colors.ListedColormap(['white', 'black', 'green', 'red', 'blue'])
 
@@ -803,3 +852,26 @@ def plot_grid(data: np.ndarray) -> None:
     # fig.set_size_inches((8.5, 11), forward=False)
     # plt.savefig(saveImageName + ".png", dpi=500)
     plt.show()
+=======
+# cmap = colors.ListedColormap(['white', 'black', 'green', 'red', 'blue'])
+#
+#
+# # Mainly used for debugging
+# # Data is 2d array
+# def plot_grid(data: np.ndarray) -> None:
+#     """
+#     An auxiliary method only used for debugging, it will plot a 2D numpy array using MatplotLib.
+#     """
+#     rows = data.shape[0]
+#     cols = data.shape[1]
+#     fig, ax = plt.subplots()
+#     ax.imshow(data, cmap=cmap)
+#     # draw gridlines
+#     # ax.grid(which='major', axis='both', linestyle='-', color='k', linewidth=1)
+#     ax.set_xticks(np.arange(0.5, rows, 1));
+#     ax.set_yticks(np.arange(0.5, cols, 1));
+#     plt.tick_params(axis='both', labelsize=0, length=0)
+#     # fig.set_size_inches((8.5, 11), forward=False)
+#     # plt.savefig(saveImageName + ".png", dpi=500)
+#     plt.show()
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa

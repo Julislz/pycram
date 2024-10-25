@@ -1,0 +1,7 @@
+#!/bin/bash
+
+
+cd /home/suturo/suturo23_24/robokudo_ws/venv/bin
+source activate
+#rosrun robokudo main.py _ae=object_detection _ros_pkg=milestone1
+rosrun robokudo main.py _ae=clean_table _ros_pkg=milestone1

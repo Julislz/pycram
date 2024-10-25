@@ -13,8 +13,8 @@ import threading
 
 from .fluent import Fluent
 from .plan_failures import PlanFailure, NotALanguageExpression
-from .external_interfaces import giskard
-
+from .external_interfaces import giskard_new as giskardpy
+from .external_interfaces import navigate as move
 
 class Language(NodeMixin):
     """
@@ -22,7 +22,11 @@ class Language(NodeMixin):
     tree.
     """
     parallel_blocklist = []
+<<<<<<< HEAD
     do_not_use_giskard = ["DetectAction", "DetectingMotion"]
+=======
+    do_not_use_giskard = ["SetGripperAction", "MoveGripperMotion", "DetectAction", "DetectingMotion"]
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     block_list: List[int] = []
     """List of thread ids which should be blocked from execution."""
 
@@ -218,7 +222,7 @@ class Repeat(Language):
         for i in range(self.repeat):
             for child in self.children:
                 if self.interrupted:
-                    return
+                    return State.INTERRUPTED, None
                 try:
                     child.resolve().perform()
                 except PlanFailure as e:
@@ -243,8 +247,8 @@ class Repeat(Language):
         """
         self.interrupted = True
         self.block_list.append(threading.get_ident())
-        if giskard.giskard_wrapper:
-            giskard.giskard_wrapper.interrupt()
+        # if giskardpy.giskard_wrapper:
+        #     giskardpy.giskard_wrapper.interrupt()
 
 
 class Monitor(Language):
@@ -289,12 +293,27 @@ class Monitor(Language):
                     cond = self.condition.get_value()
                     if cond:
                         for child in self.children:
+<<<<<<< HEAD
                             if hasattr(child, 'interrupt'):
                                 child.interrupt()
+=======
+                            print("the child killer")
+                            if giskardpy.giskard_wrapper:
+                                print("Interrupting Monitor Giskard")
+                                giskardpy.cancel_all_called_goals()
+                            #move.interrupt()
+                            if hasattr(child, 'interrupt'):
+                                child.interrupt()
+
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
                         if isinstance(cond, type) and issubclass(cond, Exception):
                             self.exception_queue.put(cond)
                         else:
                             self.exception_queue.put(PlanFailure("Condition met in Monitor"))
+<<<<<<< HEAD
+=======
+
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
                         return
                 except Exception as e:
                     self.exception_queue.put(e)
@@ -320,8 +339,12 @@ class Monitor(Language):
         """
         Calls interrupt for each child
         """
+        print("Interrupting Monitor")
         for child in self.children:
             child.interrupt()
+        if (giskardpy.giskard_wrapper):
+            giskardpy.cancel_all_called_goals()
+        move.interrupt()
 
 
 class Sequential(Language):
@@ -368,8 +391,8 @@ class Sequential(Language):
         """
         self.interrupted = True
         self.block_list.append(threading.get_ident())
-        if giskard.giskard_wrapper:
-            giskard.giskard_wrapper.interrupt()
+        # if giskard.giskard_wrapper:
+        #     giskard.giskard_wrapper.interrupt()
 
 
 class TryInOrder(Language):
@@ -420,8 +443,8 @@ class TryInOrder(Language):
         """
         self.interrupted = True
         self.block_list.append(threading.get_ident())
-        if giskard.giskard_wrapper:
-            giskard.giskard_wrapper.interrupt()
+        # if giskard.giskard_wrapper:
+        #     giskard.giskard_wrapper.interrupt()
 
 
 class Parallel(Language):
@@ -441,6 +464,7 @@ class Parallel(Language):
         thread.
 
         :return: The state and list of results according to the behaviour described in :func:`Parallel`
+<<<<<<< HEAD
 
         """
         results = [None] * len(self.children)
@@ -456,6 +480,23 @@ class Parallel(Language):
                     giskard.par_threads[self] = [threading.get_ident()]
                 else:
                     giskard.par_threads[self].append(threading.get_ident())
+=======
+
+        """
+        results = [None] * len(self.children)
+        self.threads: List[threading.Thread] = []
+        state = State.SUCCEEDED
+        results_lock = threading.Lock()
+
+        def lang_call(child_node, index):
+            nonlocal state
+            # if ("DesignatorDescription" in [cls.__name__ for cls in child_node.__class__.__mro__]
+            #         and self.__class__.__name__ not in self.do_not_use_giskard):
+                # if self not in giskard.par_threads.keys():
+                #     giskard.par_threads[self] = [threading.get_ident()]
+                # else:
+                #     giskard.par_threads[self].append(threading.get_ident())
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
             try:
                 self.root.executing_thread[child] = threading.get_ident()
                 result = child_node.resolve().perform()
@@ -500,8 +541,8 @@ class Parallel(Language):
         """
         self.interrupted = True
         self.block_list += [t.ident for t in self.threads]
-        if giskard.giskard_wrapper:
-            giskard.giskard_wrapper.interrupt()
+        # if giskard.giskard_wrapper:
+        #     giskard.giskard_wrapper.interrupt()
 
 
 class TryAll(Language):
@@ -618,4 +659,10 @@ class Code(Language):
         return child_state, child_result
 
     def interrupt(self) -> None:
+<<<<<<< HEAD
         raise NotImplementedError
+=======
+        print("Code Expression Interrupt")
+        #raise NotImplementedError
+        pass
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa

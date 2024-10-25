@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import rospy
 from roslibpy import tf
 
@@ -7,6 +8,19 @@ from ..world import World, Object
 
 from typing import List, Tuple, Dict, Optional
 from geometry_msgs.msg import PoseStamped, PointStamped, QuaternionStamped, Vector3Stamped
+=======
+from typing import List, Dict, Optional
+
+import rospy
+from geometry_msgs.msg import PoseStamped, PointStamped, QuaternionStamped, Vector3Stamped
+from giskard_msgs.msg import CollisionEntry, WorldBody
+
+from ..bullet_world import BulletWorld, Object
+from ..pose import Pose
+from ..robot_descriptions import robot_description
+from ..utilities import tf_wrapper as tf
+
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 giskard_wrapper = None
 giskard_update_service = None
 is_init = False
@@ -43,8 +57,13 @@ def initial_adding_objects() -> None:
     Adds object that are loaded in the BulletWorld to the Giskard belief state, if they are not present at the moment.
     """
     groups = giskard_wrapper.get_group_names()
+<<<<<<< HEAD
     for obj in World.current_world.objects:
         if obj != World.robot and len(obj.links) >= 1:
+=======
+    for obj in BulletWorld.current_bullet_world.objects:
+        if obj != BulletWorld.robot and len(obj.links) >= 1:
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
             if obj.name != 'floor':
                 name = obj.name + "_" + str(obj.id)
 
@@ -59,7 +78,11 @@ def removing_of_objects() -> None:
     groups = giskard_wrapper.get_group_names()
     if groups:
         object_names = list(
+<<<<<<< HEAD
             map(lambda obj: obj.name + "_" + str(obj.id), World.current_world.objects))
+=======
+            map(lambda obj: obj.name + "_" + str(obj.id), BulletWorld.current_bullet_world.objects))
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
         diff = list(set(groups) - set(object_names))
         for grp in diff:
             giskard_wrapper.remove_group(grp)
@@ -76,7 +99,11 @@ def sync_worlds() -> None:
     bullet_object_names = set()
     for obj in World.current_world.objects:
         if obj.name != robot_description.name and len(obj.links) != 1:
+<<<<<<< HEAD
             if obj.name != 'floor':
+=======
+            if obj.name != 'floor' or obj.type != "robot":
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
                 bullet_object_names.add(obj.name + "_" + str(obj.id))
 
     giskard_object_names = set(giskard_wrapper.get_group_names())
@@ -184,7 +211,11 @@ def achieve_cartesian_goal(goal_pose: Pose, tip_link: str, root_link: str) -> 'M
     :param root_link: The starting link of the chain which should be used to achieve this goal
     :return: MoveResult message for this goal
     """
+<<<<<<< HEAD
     sync_worlds()
+=======
+    #sync_worlds()
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     giskard_wrapper.avoid_all_collisions()
     giskard_wrapper.set_cart_goal(_pose_to_pose_stamped(goal_pose), tip_link, root_link)
     return giskard_wrapper.execute()
@@ -266,11 +297,21 @@ def achieve_align_planes_goal(goal_normal: List[float], tip_link: str, tip_norma
     sync_worlds()
     giskard_wrapper.set_align_planes_goal(make_vector_stamped(goal_normal), tip_link, make_vector_stamped(tip_normal),
                                           root_link)
+<<<<<<< HEAD
     return giskard_wrapper.execute()
 
 
 def achieve_open_container_goal(tip_link: str, environment_link: str,
                                 goal_state: Optional[float] = None) -> 'MoveResult':
+=======
+    g_return= giskard_wrapper.execute()
+    while not g_return:
+        rospy.sleep(0.1)
+    return g_return
+
+def achieve_open_container_goal(tip_link: str, environment_link: str, goal_state: Optional[float] = None,
+                                special_door: Optional[bool] = False) -> 'MoveResult':
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     """
     Tries to open a container in an environment, this only works if the container was added as a URDF. This goal assumes
     that the handle was already grasped. Can only handle container with 1 DOF
@@ -285,7 +326,12 @@ def achieve_open_container_goal(tip_link: str, environment_link: str,
     if goal_state is None:
         giskard_wrapper.set_open_container_goal(tip_link, environment_link)
     else:
+<<<<<<< HEAD
         giskard_wrapper.set_open_container_goal(tip_link, environment_link, goal_joint_state=goal_state)
+=======
+        giskard_wrapper.set_open_container_goal(tip_link, environment_link, goal_joint_state=goal_state,
+                                                special_door=special_door)
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 
     giskard_wrapper.allow_all_collisions()
     return giskard_wrapper.execute()
@@ -414,6 +460,7 @@ def avoid_collisions(object1: Object, object2: Object) -> None:
 
 # Creating ROS messages
 
+<<<<<<< HEAD
 # TODO: how does this workwith bullet world update
 # def make_world_body(object: Object) -> 'WorldBody':
 #     """
@@ -430,6 +477,24 @@ def avoid_collisions(object1: Object, object2: Object) -> None:
 #     urdf_body.urdf = urdf_string
 #
 #     return urdf_body
+=======
+
+def make_world_body(object: Object) -> 'WorldBody':
+    """
+    Creates a WorldBody message for a BulletWorld Object. The WorldBody will contain the URDF of the BulletWorld Object
+
+    :param object: The BulletWorld Object
+    :return: A WorldBody message for the BulletWorld Object
+    """
+    urdf_string = ""
+    with open(object.path) as f:
+        urdf_sting = f.read()
+    urdf_body = WorldBody()
+    urdf_body.type = WorldBody.URDF_BODY
+    urdf_body.urdf = urdf_string
+
+    return urdf_body
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 
 
 def make_point_stamped(point: List[float]) -> PointStamped:
@@ -523,7 +588,16 @@ def stop_looking():
     rospy.loginfo("hsr looks forward instead of looking at human")
 
 
+<<<<<<< HEAD
 def move_head_to_pose(pose: PointStamped):
+=======
+def cancel_all_called_goals():
+    giskard_wrapper.cancel_all_goals()
+    rospy.loginfo("Canceling all goals towards Giskard")
+
+
+def move_head_to_pose(pose: PoseStamped):
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     """
     moves head to given position
     :param pose: pose that head will rotate to
@@ -532,7 +606,15 @@ def move_head_to_pose(pose: PointStamped):
     # TODO: needs to be tested!
     p_axis = Vector3Stamped()
     p_axis.vector = (0, 0, 1)
+<<<<<<< HEAD
     giskard_wrapper.set_pointing_goal(goal_point=pose,
+=======
+    pointSt = PointStamped()
+    pointSt.header = pose.header
+    pointSt.point = pose.pose.position
+
+    giskard_wrapper.set_pointing_goal(goal_point=_pose_to_pose_stamped(pointSt),
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
                                       tip_link="head_center_camera_frame",
                                       pointing_axis=p_axis,
                                       root_link="base_footprint")
@@ -558,7 +640,11 @@ def move_arm_to_pose(pose: PointStamped):
 
 
 def grasp_doorhandle(handle_name: str):
+<<<<<<< HEAD
     print("open door with handle")
+=======
+    print("grasp handle")
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 
     giskard_wrapper.set_hsrb_door_handle_grasp(handle_name=handle_name)
     giskard_wrapper.allow_all_collisions()
@@ -576,15 +662,27 @@ def grasp_handle(handle_name: str):
 
 
 def open_doorhandle(handle_name: str):
+<<<<<<< HEAD
     giskard_wrapper.set_hsrb_open_door_goal(door_handle_link=handle_name)
     giskard_wrapper.allow_all_collisions()
+=======
+    giskard_wrapper.allow_all_collisions()
+    giskard_wrapper.set_hsrb_open_door_goal(door_handle_link=handle_name)
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     giskard_wrapper.execute(add_default=False)
 
 
 def spawn_kitchen():
+<<<<<<< HEAD
     env_urdf = rospy.get_param('kitchen_description')
     kitchen_pose = tf.lookup_pose('map', 'iai_kitchen/urdf_main')
     giskard_wrapper.add_urdf(name='iai_kitchen',
+=======
+    env_urdf = rospy.get_param('/iai_kitchen')
+    kitchen_pose = tf.lookup_pose('map', 'iai_kitchen/urdf_main')
+    print(kitchen_pose)
+    giskard_wrapper.add_urdf(name='arena',
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
                              urdf=env_urdf,
                              pose=kitchen_pose)
 
@@ -615,3 +713,19 @@ def park_arms():
     giskard_wrapper.take_pose("park")
     giskard_wrapper.execute()
 
+<<<<<<< HEAD
+=======
+
+
+# def reaching(self,
+#                #context,
+#                grasp: str -> front top right left below
+#                align -> frame (dh wrist frame aligned damit) -> aka tip_link, wenn aliugn leer dnan ignore
+#                object_name: str, #(die spawned planning)
+#                object_shape: str, #(cylinder oder something lese)
+#                goal_pose: Optional[PoseStamped] = None,
+#                object_size: Optional[Vector3] = None,
+#                root_link: str = 'map',
+#                tip_link: str = 'hand_palm_link',
+#                velocity: float = 0.2): -> auch von planning
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa

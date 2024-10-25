@@ -1,0 +1,22 @@
+<launch>
+
+  <!-- starts rviz/bringup launch -->
+
+  <include file="$(find suturo_bringup)/launch/envi_bringup.launch"/>
+  <include file="$(find giskardpy)/launch/giskardpy_hsr_real_vel.launch"/>
+
+
+e
+  <!--  <include file="/home/suturo/suturo23_24/common_ws/src/iai_hsr/hsr_velocity_controller/launch/switch_to_velocity_controllers.launch"/> -->
+
+  <!--<node pkg="tf" type="static_transform_publisher" name="couch_boardcaster" args="4.2 1.19 1.57 0 0 0 1 /map /couch 100" /> -->
+  <node pkg="tf" type="static_transform_publisher" name="couch_boardcaster" args="4.2 1.19 0.3 0 0 0.70710678 0.70710678 map couch 100" />
+  <node pkg="sound_detection" type="nlp_sound_detect.py" name="sound_detection" output="screen" />
+  <node name="run_receptionist_node" pkg="pycram" type="receptionist_starter_script" output="screen"/>
+
+
+
+
+
+</launch>
+

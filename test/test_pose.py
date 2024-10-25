@@ -6,11 +6,11 @@ from pycram.datastructures.pose import Pose, Transform
 class TestPose(unittest.TestCase):
 
     def test_pose_creation(self):
-        p = Pose([1, 2, 3], [0, 0, 0, 1], "test")
+        p = Pose([1, 2, 3], [0, 0, 0, 1], "pp.py")
 
         self.assertEqual(p.position_as_list(), [1, 2, 3])
         self.assertEqual(p.orientation_as_list(), [0, 0, 0, 1])
-        self.assertEqual(p.frame, "test")
+        self.assertEqual(p.frame, "pp.py")
         self.assertEqual(p.to_list(), [[1, 2, 3], [0, 0, 0, 1]])
 
     def test_pose_to_transform(self):

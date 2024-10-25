@@ -69,7 +69,7 @@ class MergerTestCaseBase(unittest.TestCase):
             raise AssertionError("Config File not found:{}".format(in_path))
 
 
-# Note: Can't test full functionality
+# Note: Can't pp.py full functionality
 
 class MergeDatabaseTest(unittest.TestCase):
     source_engine: sqlalchemy.engine.Engine

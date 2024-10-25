@@ -4,6 +4,10 @@ import rospy
 from move_base_msgs.msg import MoveBaseAction
 from roslibpy import actionlib
 
+<<<<<<< HEAD
+=======
+from demos.pycram_serve_breakfast_demo.utils.misc import get_bowl
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 from pycram.process_module import real_robot, semi_real_robot
 from pycram.ros.robot_state_updater import RobotStateUpdater
 from pycram.ros.viz_marker_publisher import VizMarkerPublisher
@@ -56,6 +60,15 @@ with ((real_robot)):
     TalkingMotion("Starting demo").resolve().perform()
     rospy.loginfo("Starting demo")
 
+<<<<<<< HEAD
     NavigateAction(target_locations=[Pose([4, 2, 0], [0, 0, 0, 1])]).resolve().perform()
     PlaceGivenObjAction(["Metalbowl"], ["left"], [Pose([4.86, 2, 0.88])], ["top"]).resolve().perform()
+=======
+    NavigateAction(target_locations=[Pose([1.45, 5, 0], [0, 0, 0.7, 0.7])]).resolve().perform()
+    object_desig = DetectAction(technique='all').resolve().perform()
+    bowl = get_bowl(object_desig)
+    PlaceGivenObjAction(["Milkpackja"], ["left"],
+                       [Pose([bowl.pose.position.x + 0.2, 5.8, 0.775])], ["top"]).resolve().perform()
+    # PlaceGivenObjAction(["Cronybox"], ["left"], [Pose([4.86, 2, 0.88])], ["front"]).resolve().perform()
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     ParkArmsAction([Arms.LEFT]).resolve().perform()

@@ -5,9 +5,14 @@ from .hsrb_process_modules import HSRBManager
 from .default_process_modules import DefaultManager
 from .stretch_process_modules import StretchManager
 
+
 Pr2Manager()
 BoxyManager()
 DonbotManager()
 HSRBManager()
 DefaultManager()
+<<<<<<< HEAD
 StretchManager()
+=======
+
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa

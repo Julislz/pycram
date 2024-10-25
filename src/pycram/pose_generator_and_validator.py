@@ -92,6 +92,7 @@ class PoseGenerator:
         This generation is done by simply calculating the arctan between the position,
         in the costmap, and the origin of the costmap.
 
+<<<<<<< HEAD
         :param position: The position in the costmap. This position is already converted to the world coordinate frame.
         :param origin: The origin of the costmap. This is also the point which the robot should face.
         :return: A quaternion of the calculated orientation
@@ -99,6 +100,24 @@ class PoseGenerator:
         angle = np.arctan2(position[1] - origin.position.y, position[0] - origin.position.x) + np.pi
         quaternion = list(tf.transformations.quaternion_from_euler(0, 0, angle, axes="sxyz"))
         return quaternion
+=======
+def generate_orientation(position: List[float], origin: Pose) -> List[float]:
+    """
+    This method generates the orientation for a given position in a costmap. The
+    orientation is calculated such that the robot faces the origin of the costmap.
+    This generation is done by simply calculating the arctan between the position,
+    in the costmap, and the origin of the costmap.
+
+    :param position: The position in the costmap. This position is already converted
+        to the world coordinate frame.
+    :param origin: The origin of the costmap. This is also the point which the
+        robot should face.
+    :return: A quaternion of the calculated orientation
+    """
+    angle = np.arctan2(position[1] - origin.position.y, position[0] - origin.position.x) + np.pi
+    quaternion = list(tf.transformations.quaternion_from_euler(0, 0, angle, axes="sxyz"))
+    return quaternion
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 
 
 def visibility_validator(pose: Pose,
@@ -182,6 +201,17 @@ def reachability_validator(pose: Pose,
     manipulator_descs = list(
         filter(lambda chain: isinstance(chain[1], ManipulatorDescription), robot_description.chains.items()))
 
+<<<<<<< HEAD
+=======
+    left_gripper = robot_description.get_tool_frame('left')
+    right_gripper = robot_description.get_tool_frame('right')
+
+    # left_joints = robot_description._safely_access_chains('left').joints
+    left_joints = robot_description.chains['left'].joints
+    # right_joints = robot_description._safely_access_chains('right').joints
+    if robot.name != 'hsrb':
+        right_joints = robot_description.chains['right'].joints
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
     # TODO Make orientation adhere to grasping orientation
     res = False
     arms = []

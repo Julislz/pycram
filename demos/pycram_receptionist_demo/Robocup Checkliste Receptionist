@@ -1,0 +1,33 @@
+spezifische Änderungen für neue Maps:
+[spezielle Anmerkung: Audo Topic immer zwei Mal anmachen!!! sonst funktioniert es wahrscheinlich nicht]
+
+- Pre Pose fürs Tür Öffnen anpassen
+""
+pose1 = Pose([1.35, 4.4, 0], [0, 0, 1, 0])
+NavigateAction([pose1]).resolve().perform()
+""
+
+- Pose, um von Tür wegzufahren anpassen
+""
+pose2 = Pose([1.9, 4.5, 0], [0, 0, 1, 0])
+NavigateAction([pose2]).resolve().perform()
+""
+
+- von Tür zur Couch Pose anpassen in *new_misc.py*
+""
+NavigateAction([door_to_couch]).resolve().perform()
+""
+
+- ggf. Kopf so rotieren, dass alle sofa-Plätze gesehen werden
+- beide Male im Code für beide Gäste
+""
+guest_pose = detect_point_to_seat()
+""
+
+- ggf. nach Couch zur Seite zu Stühlen gucken für failure Handling
+""
+# move head a little to perceive chairs
+MoveJointsMotion(["head_pan_joint"], [-0.3]).resolve().perform()
+""
+
+- ggf. beim ersten mal host im Wohnzimmer finden Failure handling einbauen, falls human detection nichts findet

@@ -3,11 +3,15 @@ name: Build Sphinx documentation 📖
 on:
   push:
     branches:
+<<<<<<< HEAD
       - dev
   pull_request:
     branches:
       - master
       - dev
+=======
+      - MS2
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 
 # ----------------------------------------------------------------------------------------------------------------------
 

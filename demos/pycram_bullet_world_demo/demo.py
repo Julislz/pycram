@@ -9,7 +9,16 @@ from pycram.object_descriptors.urdf import ObjectDescription
 from pycram.world_concepts.world_object import Object
 from pycram.datastructures.dataclasses import Color
 
+<<<<<<< HEAD
 extension = ObjectDescription.get_file_extension()
+=======
+from pycram.ros.viz_marker_publisher import VizMarkerPublisher
+
+world = BulletWorld("DIRECT")
+v = VizMarkerPublisher()
+robot = Object("hsrb", ObjectType.ROBOT, "hsrb.urdf", pose=Pose([1, 2, 0]))
+apartment = Object("apartment", ObjectType.ENVIRONMENT, "apartment.urdf")
+>>>>>>> a27749b26775a067b9d2b550387c2c08c00dadfa
 
 world = BulletWorld()
 robot = Object("pr2", ObjectType.ROBOT, f"pr2{extension}", pose=Pose([1, 2, 0]))
@@ -43,7 +52,7 @@ def move_and_detect(obj_type):
 
 
 with simulated_robot:
-    ParkArmsAction([Arms.BOTH]).resolve().perform()
+    ParkArmsAction([Arms.LEFT]).resolve().perform()
 
     MoveTorsoAction([0.25]).resolve().perform()
 
