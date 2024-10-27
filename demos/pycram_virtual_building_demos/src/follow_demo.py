@@ -105,8 +105,7 @@ def follow_simple_example(robot):
         pose = Pose([2, 0, 0], ori_s)
 
         # spawn human
-        human = Object("human", ObjectType.MILK, "human.stl", pose=pose,
-                       color=Color(1, 0, 0, 1))
+        human = Object("human", ObjectType.MILK, "human.stl", pose=pose)
 
         pose = Pose([1, 0, 0], ori_a)
         # position robot near the human
