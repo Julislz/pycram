@@ -194,17 +194,17 @@ class HumanDescription:
     Class that represents humans. this class does not spawn a human in a simulation.
     """
 
-    def __init__(self, name: String, fav_drink: Optional = None,
-                 pose: Optional = None, attributes: Optional = None, interests: Optional[List] = None):
+    def __init__(self, name: str, fav_drink: Optional = None,
+                 pose: Optional = None, attributes: Optional = None,
+                 interests: Optional[List] = None, human_id: Optional[int] = -1):
         """
         :param name: name of human
         :param fav_drink: favorite drink of human
         :param pose: last known pose of human
+        :param attributes: list of detected attributes
+        :param human_id: id given to human
         """
 
-        # TODO: coordinate with Perception on what is easy to implement
-        # characteristics to consider: height, hair color, and age.
-        # self.human_pose = Fluent()
         self.name = name
         self.fav_drink = fav_drink
         self.pose = pose
@@ -213,7 +213,7 @@ class HumanDescription:
             self.interests = []
         else:
             self.interests = interests
-        self.id = -1
+        self.id = human_id
 
     def set_id(self, new_id: int):
         """

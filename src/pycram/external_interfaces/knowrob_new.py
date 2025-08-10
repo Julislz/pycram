@@ -3,12 +3,9 @@ from neem_interface_python import rosprolog_client
 ros_client = rosprolog_client.Prolog()
 
 
-##### Infos about Knowrob querys #####
+### Infos about Knowrob querys ###
 # communication via strings
 # query once (one result) und qoery all solutions (all results)
-# dot at the end ofquery string important, if . is not there query won't stop
-# there is a difference between "" and '', you will need 'data'
-########################################
 
 def save_person_drink(name: str, drink: str):
     """
