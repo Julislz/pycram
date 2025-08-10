@@ -1,0 +1,290 @@
+{
+  "hobbies": {
+    "volleyball": [
+      "I love playing as a setter.",
+      "Spiking the ball feels amazing!",
+      "Beach volleyball is my favorite."
+    ],
+    "chess": [
+      "I enjoy strategizing for hours.",
+      "Outsmarting humans is thrilling.",
+      "we robots love chess but it always ends in a draw"
+    ],
+    "games": [
+      "i love stategic games most"
+    ],
+    "photography": [
+      "I enjoy capturing sunsets and landscapes.",
+      "My Perception got an update recently",
+      "awesome i own multiple cameras"
+    ],
+    "cooking": [
+      "my brother Raphael loves making pancakes",
+      "I love trying out different cuisines.",
+      "Cooking is like creating art on a plate."
+    ],
+    "painting": [
+      "finding the R G B values is my specialty",
+      "I love painting T F graphs"
+    ],
+    "cycling": [
+      "i rather drive with my wheels",
+      "i wish i had legs to cycle"
+    ],
+    "gaming": [
+      "Exploring new worlds and completing quests is thrilling!",
+      "I love the competitive aspect of gaming.",
+      "Gaming helps me relax after a long day."
+    ],
+    "reading": [
+      "you can read my documentation online",
+      "i love reading zeros and ones"
+    ],
+    "running": [
+      "I always beat turtlebot in a race.",
+      "I love navigating through homes",
+      "I always feel energized after a run."
+    ],
+    "writing": [
+      "Writing lets me express my thoughts creatively.",
+      "I enjoy creating characters and stories.",
+      "It's therapeutic to put my ideas onto paper."
+    ],
+    "swimming": [
+      "The pool is my happy place.",
+      "I love swimming laps for both exercise and relaxation.",
+      "There's nothing like a refreshing swim on a hot day."
+    ],
+    "hiking": [
+      "Hiking is the perfect way to disconnect from technology.",
+      "Every trail brings a new adventure."
+    ],
+    "fishing": [
+      "I enjoy the patience and relaxation that fishing brings.",
+      "Early mornings by the lake are the best.",
+      "Catching a big fish feels like an accomplishment."
+    ],
+    "gardening": [
+      "I love watching my plants grow and thrive.",
+      "There's something so peaceful about tending to the garden."
+    ],
+    "dancing": [
+      "Dancing is such a great way to express myself.",
+      "I enjoy learning new choreography.",
+      "Whether it's salsa or hip-hop, I love getting into the rhythm."
+    ],
+    "singing": [
+      "Singing makes me feel alive.",
+      "I sing to lift my spirits.",
+      "There's nothing better than singing"
+    ],
+    "yoga": [
+      "Yoga helps me get in touch wit my inner gyroscope",
+      "It's my way of reconnecting with my joints and C P U cores."
+    ],
+    "meditation": [
+      "Meditation helps me clear my cache and relax.",
+      "I use meditation to calm myself during stressful times."
+    ],
+    "traveling": [
+      "I love exploring new places and cultures.",
+      "Traveling opens my mind to new perspectives.",
+      "My dream is to visit every continent."
+    ],
+    "drawing": [
+      "i like display drawings",
+      "i can draw bounding boxes"
+    ],
+    "knitting": [
+      "Knitting is so soothing and calming.",
+      "I love creating something beautiful with my hands.",
+      "It's rewarding to make something from scratch."
+    ],
+    "coding": [
+      "I enjoy solving problems and creating something functional.",
+      "Programming is both challenging and rewarding.",
+      "I love the creativity that comes with coding."
+    ],
+    "robotics": [
+      "robotics is fun",
+      "i love robotics too"
+    ],
+    "guitar": [
+      "I love strumming my guitar and playing my favorite songs.",
+      "Guitar is such a versatile instrument.",
+      "There's nothing like the feeling of playing music with others."
+    ],
+    "movies": [
+      "I enjoy immersing myself in a good film.",
+      "Movies are a great way to unwind after a long day.",
+      "I love the creativity and storytelling in films."
+    ],
+    "listening to music": [
+      "Music is my constant companion.",
+      "I love discovering new artists and genres.",
+      "There's a song for every mood I’m in."
+    ],
+    "soccer": [
+      "I love the teamwork and energy that comes with soccer.",
+      "Scoring a goal is the best feeling!",
+      "I enjoy playing soccer with friends on weekends."
+    ],
+    "building model airplanes": [
+      "I love the challenge of assembling intricate model airplanes.",
+      "It's a rewarding hobby to see the finished model fly.",
+      "Building models gives me a sense of accomplishment."
+    ],
+    "birdwatching": [
+      "Birdwatching helps me connect with nature.",
+      "I love drawing boundig boxes around birds."
+    ],
+    "sleeping": [
+      "sleeping helps me recharge",
+      "i love to go on stand by every now and then"
+    ],
+    "music": [
+      "music is awesome",
+      "i enjoy listening to music"
+    ],
+    "football": [
+      "i always watch superbowl",
+      "i am bad at football"
+    ],
+    "youtube": [
+      "there are videos of me on youtube"
+    ],
+    "working out": [
+      "i cleaned up a gym once"
+    ],
+    "surfing": [
+      "if water would not break me i would go surfing"
+    ],
+    "video games": [
+      "i played League of Legends as a support once"
+    ],
+    "stand up": [
+      "can you teach me some jokes?"
+    ],
+    "skydiving": [
+      "i never understood why humans would do that"
+    ],
+    "rugby": [
+      "rugby is great"
+    ],
+    "climbing": [
+      "climbing with one hand is very difficult for me"
+    ],
+    "rock climbing": [
+      "climbing with one hand is very difficult for me"
+    ],
+    "programming": [
+      "programming me was very difficult i heard"
+    ],
+    "poetry": [
+      "writing a good poem is very difficult"
+    ],
+    "piano": [
+      "with my gripper i can not play the piano yet"
+    ],
+    "meeting with friends": [
+      "meeting friends is awesome"
+    ],
+    "handball": [
+      "i am a great goal keeper in handball"
+    ],
+    "robots": [
+      "i am a robot"
+    ]
+  },
+  "fallback": [
+    "That sounds interesting!",
+    "Oh, that must be fun!",
+    "sounds fascinating!"
+  ],
+  "verb_correction": {
+    "program": [
+      "programming"
+    ],
+    "surf": [
+      "surfing"
+    ],
+    "draw": [
+      "drawing"
+    ],
+    "paint": [
+      "painting"
+    ],
+    "cycle": [
+      "cycling"
+    ],
+    "game": [
+      "gaming"
+    ],
+    "read": [
+      "reading"
+    ],
+    "run": [
+      "running"
+    ],
+    "write": [
+      "writing"
+    ],
+    "swim": [
+      "swimming"
+    ],
+    "hike": [
+      "hiking"
+    ],
+    "fish": [
+      "fishing"
+    ],
+    "garden": [
+      "gardening"
+    ],
+    "dance": [
+      "dancing"
+    ],
+    "sing": [
+      "singing"
+    ],
+    "meditate": [
+      "meditation"
+    ],
+    "meditating": [
+      "meditation"
+    ],
+    "travel": [
+      "traveling"
+    ],
+    "knit": [
+      "knitting"
+    ],
+    "code": [
+      "coding"
+    ],
+    "build": [
+      "building"
+    ],
+    "birdwatch": [
+      "birdwatching"
+    ],
+    "sleep": [
+      "sleeping"
+    ],
+    "work out": [
+      "working out"
+    ],
+    "climb": [
+      "climbing"
+    ],
+    "rock climb": [
+      "rock climbing"
+    ],
+    "meet with friends": [
+      "meeting with friends"
+    ]
+
+}
+
+
+}

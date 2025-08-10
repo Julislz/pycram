@@ -92,10 +92,7 @@ def demo(step: int, clear_path: Optional[bool] = True):
             img.pub_now(ImageEnum.FOLLOWSTOP.value)
 
             try:
-                # perceive and follow human
                 plan = Code(lambda: giskardpy.cml(drive_back=False, clear_path=clear_path)) >> Monitor(monitor_func)
-                plan.perform()
-                plan = Code(lambda: rospy.sleep(1)) * 999999 >> Monitor(monitor_func_no_timer)
                 plan.perform()
 
             except SensorMonitoringCondition:
@@ -199,18 +196,8 @@ def monitor_func_no_timer():
 
 
 def monitor_func():
-    """
-    monitors force torque sensor of robot and throws
-    Condition if a significant force is detected (e.g. the gripper is pushed down)
-    """
-    global start_time
-    global timeout1
-    global drive_poses
     der = fts.get_last_value()
-
-    # TODO: test values before challenge
     if abs(der.wrench.force.x) > 18.30:
-        rospy.logwarn("sensor exception")
         return SensorMonitoringCondition
 
     return False
