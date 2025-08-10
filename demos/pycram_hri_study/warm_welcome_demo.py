@@ -99,6 +99,10 @@ def demo(step: int):
                 kitchen = True
 
         if step <= 2:
+            # perceive attributes
+            get_attributes(guest)
+
+            # show the guest the apartment
             MoveJointsMotion(["torso_lift_joint"], [0.0]).perform()
             TalkingMotion("i will show you around now").perform()
             rospy.sleep(2)
@@ -208,6 +212,8 @@ def demo(step: int):
                 TalkingMotion("if you want you can get yourself a drink there").perform()
                 rospy.sleep(2)
 
+            # describe guest to further show robots abilities
+            describe(guest)
             TalkingMotion("thank you for your time").perform()
 
 

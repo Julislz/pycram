@@ -201,6 +201,35 @@ def check_drink_available(guest: HumanDescription):
     return False
 
 
+def describe(human: HumanDescription):
+    """
+    HRI-function for describing a human more detailed.
+    the following will be stated: gender, headgear, clothing, brightness of clothes
+    :param human: human to be described
+    """
+
+    if human.attributes != "False" and human.attributes is not None:
+        print(human.attributes)
+        TalkingMotion(f"I will describe {human.name} further now").perform()
+        rospy.sleep(1.5)
+
+        # gender
+        TalkingMotion(f"their gender is {human.attributes[0]}").perform()
+        rospy.sleep(1.5)
+
+        # headgear or not
+        TalkingMotion(f"they are {human.attributes[1]}").perform()
+        rospy.sleep(1)
+
+        # kind of clothes
+        TalkingMotion(f"they are  {human.attributes[2]}").perform()
+        rospy.sleep(1)
+
+        # brightness of clothes
+        TalkingMotion(f"they are wearing {human.attributes[3]}").perform()
+        rospy.sleep(1)
+
+
 def display_info(info: str):
     """
     function to display text on robots display

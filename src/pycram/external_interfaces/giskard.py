@@ -989,7 +989,6 @@ def _pose_to_pose_stamped(pose: Pose) -> PoseStamped:
 @init_giskard_interface
 def cml(drive_back, clear_path: Optional[bool] = True):
     try:
-        print("in cml")
         giskard_wrapper.motion_goals.add_carry_my_luggage(name='cmb', drive_back=drive_back,
                                                           point_cloud_laser_topic_name=None,
                                                           clear_path=clear_path,
@@ -999,10 +998,7 @@ def cml(drive_back, clear_path: Optional[bool] = True):
     except PreemptedException:
         print("done  cml")
 
-        # if giskard_exe.error.code == 2:
-        #     print("works fine")
-        # else:
-        #     print("cml error")
+
 
 
 @init_giskard_interface

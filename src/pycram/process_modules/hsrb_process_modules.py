@@ -336,15 +336,19 @@ class HSRBDetectingReal(ProcessModule):
         human_pose = None
         print(desig.technique)
         if desig.state == "stop":
-            print("I am here")
             stop_query()
             return "stopped"
+
+        # continuously perceive human - part of HRI study
         elif desig.technique == 'human_receptionist' and (desig.state == 'start' or desig.state == None):
             human_pose = query_human_receptionist()
             return human_pose
+
         elif desig.technique == 'human' and (desig.state == 'start' or desig.state == None):
             human_pose = query_human()
             return human_pose
+
+        # return all drinks detected in field of vision
         elif desig.technique == 'drink':
             print("query drink")
             drinks = query_beverages()
@@ -353,8 +357,8 @@ class HSRBDetectingReal(ProcessModule):
                 drink_and_pose = [item.description[0], item.pose[0]]
                 detected_drinks.append(drink_and_pose)
 
-            print(detected_drinks)
             return detected_drinks
+
         elif desig.technique == "human_forbidden":
             query_result = query_for_forbidden_room()
             for i in range(0, len(query_result.res)):
@@ -401,17 +405,26 @@ class HSRBDetectingReal(ProcessModule):
 
 
             return human_pose
+
+        # detect all faces in sight, new faces get a new unused ID
         elif desig.state == "face":
 
+            # query to robokudo
             res = query_faces_human()
             id_dict = {}
             keys = []
+
+            # no face detetcted
             if not res:
                 return []
+
+            # faces detected
             if res.res:
+                # process result in a dictionary with id and pose of human with that id
                 for ele in res.res:
                     id_dict[int(ele.type)] = ele.pose[0]
                     keys.append(int(ele.type))
+                # entry with all keys (IDs) returned by perception
                 id_dict["keys"] = keys
                 return id_dict
             else:
@@ -423,8 +436,7 @@ class HSRBDetectingReal(ProcessModule):
 
             return return_list
 
-
-
+        # filter locations
         elif desig.technique == 'location':
             seat = desig.state
             seat_human_pose = query_specific_region(seat)
@@ -439,22 +451,26 @@ class HSRBDetectingReal(ProcessModule):
                 loginfo("".join(loc_list))
                 return loc_list
 
-            # if only one seat is checked
+            # check for a free place to sit - part of HRI study
+            if seat == "sofa":
+
+                # when whole sofa gets checked, a list of lists is returned
+                res = []
+
+                for i in seat_human_pose.res[0].attribute:
+                    res.append(i.split(','))
+
+                return res
+
             if seat != "sofa":
+                # if only one seat is checked
                 return seat_human_pose[0].attribute[0][9:].split(',')
-            # when whole sofa gets checked, a list of lists is returned
-            res = []
 
-            for i in seat_human_pose.res[0].attribute:
-                res.append(i.split(','))
-
-            return res
-
+        # perceive attributes of a human - part of HRI study
         elif desig.technique == 'attributes':
             human_pose_attr = query_human_attributes()
             counter = 0
-            # wait for human to come
-            # TODO: try catch block
+
             if not human_pose_attr:
                 return "False"
             while not human_pose_attr.res and counter < 6:

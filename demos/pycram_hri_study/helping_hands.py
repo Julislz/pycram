@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pycram.external_interfaces.giskard as giskardpy
 from demos.pycram_hsrb_real_test_demos.utils.startup import startup
 from demos.pycram_receptionist_demo.utils.helper import *
@@ -7,13 +9,7 @@ from pycram.designators.object_designator import *
 from pycram.external_interfaces.navigate import PoseNavigator
 from pycram.process_module import real_robot
 import rospy
-import subprocess
-from pycram.datastructures.enums import ObjectType
-
 from pycram.utilities.robocup_utils import TextToImagePublisher, ImageSwitchPublisher
-from pycram.world_concepts.world_object import Object
-from pycram.worlds.bullet_world import BulletWorld
-
 
 # Initialize the necessary components
 tf_listener, marker, world, v, text_to_speech_publisher, image_switch_publisher, move, robot, kitchen = startup()
@@ -22,14 +18,13 @@ img = ImageSwitchPublisher()
 navigation = PoseNavigator()
 fts = ForceTorqueSensor(robot_name='hsrb')
 rkclient = create_action_client('robokudo/query', QueryAction)
-rospy.loginfo("Waiting for action server")
 rkclient.wait_for_server()
-rospy.loginfo("You can start your demo now")
-drive_poses = []
+
 
 class Human:
     """
-    Class that represents humans. This class does not spawn a human in a simulation.
+    Class that represents humans.
+    To check if we know where a humans pose is
     """
 
     def __init__(self):
@@ -46,41 +41,26 @@ class Human:
         """
         self.human_pose = True
 
+
 human = Human()
-first_timer_pose = None
 second_timer_pose = None
-start_time = time.time()
 timeout1 = 14
 
 
 def demo(step: int, clear_path: Optional[bool] = True):
-    global start_time
-    global first_timer_pose
-    global drive_poses
 
     with (real_robot):
 
         if step <= 1:
             TalkingMotion("I am excited for the next interaction").perform()
-            print(robot.get_pose())
-            # TalkingMotion("Starting Carry my Luggage demo.").perform()
             MoveJointsMotion(["arm_roll_joint"], [-1.2]).perform()
             img.pub_now(ImageEnum.HI.value)
-            print("start demo")
-
-            # store pose to drive back to with rotated orientation
-            start_pose = robot.get_pose()
-            print("start pose ###########################")
-            print(start_pose)
-            print("###########################")
 
             # move robot in starting position
-            # ParkArmsAction([Arms.LEFT]).resolve().perform()
-            MoveJointsMotion(["head_tilt_joint"], [0.2]).perform()
-            # MoveJointsMotion(["head_pan_joint"], [0.0]).perform()
-
-            # MoveJointsMotion(["wrist_flex_joint"], [-1.6]).perform()
-            # MoveGripperMotion(GripperState.OPEN, Arms.LEFT).perform()
+            MoveJointsMotion(["wrist_flex_joint"], [-1.6]).perform()
+            MoveJointsMotion(["head_tilt_joint"], [0.0]).perform()
+            MoveJointsMotion(["head_pan_joint"], [0.0]).perform()
+            MoveJointsMotion(["arm_roll_joint"], [-1.2]).perform()
 
             # wait for human and hand to be pushed down
             demo_start(human)
@@ -92,25 +72,30 @@ def demo(step: int, clear_path: Optional[bool] = True):
             img.pub_now(ImageEnum.FOLLOWSTOP.value)
 
             try:
+                # follow human until gripper is pushed down
                 plan = Code(lambda: giskardpy.cml(drive_back=False, clear_path=clear_path)) >> Monitor(monitor_func)
                 plan.perform()
 
             except SensorMonitoringCondition:
+
+                # location of bag is reached
                 MoveJointsMotion(["wrist_flex_joint"], [-1.6]).perform()
                 TalkingMotion("We have arrived.").perform()
                 MoveJointsMotion(["torso_lift_joint"], [0.1]).perform()
-                text_to_img_publisher.pub_now("i can carry the bag to the kitchen for you")
-                rospy.sleep(2.5)
-                img.pub_now(ImageEnum.GENERATED_TEXT.value)
                 TalkingMotion("Please hand the bag in my gripper").perform()
+
+                # show instructions on display
                 text_to_img_publisher.pub_now("when the bag is handed in push down my gripper")
                 MoveGripperMotion(GripperState.OPEN, Arms.LEFT).perform()
-                rospy.sleep(4)
+                rospy.sleep(3)
                 img.pub_now(ImageEnum.GENERATED_TEXT.value)
                 TalkingMotion("please put the bag in my gripper and push down my gripper").perform()
+
                 try:
-                    plan = Code(lambda: rospy.sleep(1)) * 99999999 >> Monitor(monitor_func_no_timer)
+                    # wait until bag is placed in gripper - gripper is pushed down
+                    plan = Code(lambda: rospy.sleep(1)) * 99999999 >> Monitor(monitor_func)
                     plan.perform()
+
                 except SensorMonitoringCondition:
                     MoveJointsMotion(["wrist_flex_joint"], [-1.6]).perform()
                     TalkingMotion("Closing my Gripper.").perform()
@@ -119,16 +104,18 @@ def demo(step: int, clear_path: Optional[bool] = True):
                     TalkingMotion("i will bring it to the kitchen for you").perform()
 
                     if step <= 3:
-                        # drive back starting with last recorded pose
+                        # drive in the kitchen
                         drive_back_move_base()
-                        # giskardpy.cml(True)
 
+                        # place bag on the floor
                         MoveJointsMotion(["torso_lift_joint"], [0.0]).perform()
                         MoveJointsMotion(["arm_flex_joint"], [-0.6]).perform()
                         MoveGripperMotion(GripperState.OPEN, Arms.LEFT).perform()
                         img.pub_now(ImageEnum.HI.value)
 
             except giskardpy.ExecutionException:
+
+                # exception handling, when robot lost human
                 TalkingMotion("Wait").perform()
                 rospy.sleep(1)
                 TalkingMotion("i lost sight of you").perform()
@@ -146,21 +133,21 @@ def demo_start(human: Human):
     The robot will wait until its hand is pushed down and then scan the
     environment for a human
     """
-    global start_time
+
     try:
         img.pub_now(ImageEnum.PUSHBUTTONS.value)
-        rospy.sleep(2)
         TalkingMotion("Push down my Hand, when i should follow you").perform()
-        plan = Code(lambda: rospy.sleep(1)) * 999999 >> Monitor(monitor_func_no_timer)
+
+        # wait for gripper  to be pushed down
+        plan = Code(lambda: rospy.sleep(1)) * 999999 >> Monitor(monitor_func)
         plan.perform()
 
     except SensorMonitoringCondition:
         img.pub_now(ImageEnum.SEARCH.value)
-        MoveJointsMotion(["wrist_flex_joint"], [-1.6]).perform()
-
         TalkingMotion("Please step in front of me").perform()
         human.human_pose = False
 
+        # look for human
         goal_msg = QueryGoal()
         x = rkclient.send_goal(goal_msg)
 
@@ -179,25 +166,17 @@ def demo_start(human: Human):
 
         TalkingMotion("thank you").perform()
         img.pub_now(ImageEnum.HI.value)
-        rospy.sleep(2)
         return
 
-def monitor_func_no_timer():
+
+def monitor_func():
     """
     monitors force torque sensor of robot and throws
     Condition if a significant force is detected (e.g. the gripper is pushed down)
     """
     der = fts.get_last_value()
-    if abs(der.wrench.force.x) > 18.50:
-        rospy.logwarn("sensor exception, gripper pushed")
-        return SensorMonitoringCondition
-
-    return False
-
-
-def monitor_func():
-    der = fts.get_last_value()
     if abs(der.wrench.force.x) > 18.30:
+        rospy.logwarn("sensor exception, gripper pushed")
         return SensorMonitoringCondition
 
     return False
@@ -205,15 +184,17 @@ def monitor_func():
 
 def drive_back_move_base():
     """
-    navigate with move base to the start point of the challenge
+    navigate with move base to the kitchen
     """
     nav_pose_1 = Pose([-0.2, -0.9, 0], orientation=[0, 0, 0, 1])
     nav_pose_2 = Pose([1.8, -1, 0], orientation=[0, 0, 0, 1])
     nav_pose_3 = Pose([3.5, -2, 0], orientation=[0, 0, 0, 1])
+
     NavigateAction([nav_pose_1]).resolve().perform()
     NavigateAction([nav_pose_2]).resolve().perform()
     TalkingMotion("almost there").perform()
     NavigateAction([nav_pose_3]).resolve().perform()
-    TalkingMotion("tASK COMPLEDET").perform()
+    TalkingMotion("task completed").perform()
+
 
 demo(0)
