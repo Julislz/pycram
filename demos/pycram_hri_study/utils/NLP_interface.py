@@ -23,7 +23,7 @@ class NLP_Interface:
         self.image_switch_publisher = ImageSwitchPublisher()
 
         # variables for response handling
-        self.res_loader = ResponseLoader("a.json")
+        self.res_loader = ResponseLoader()
         self.res_loader.load_data()
         self.response = ["", ""]
 
@@ -230,7 +230,6 @@ class NLP_Interface:
 
             if int(time.time() - start_time) == timeout:
                 rospy.logwarn("guest needs to repeat")
-                print("listen again")
                 self.nlp_pub.publish("start listening")
                 start_time = time.time()
                 rospy.sleep(1)

@@ -12,7 +12,6 @@ class ResponseLoader:
         try:
             with open(f"/home/suturo/suturo23_24/pycram_ws/src/pycram/demos/pycram_hri_study/utils/{self.json_file}") as file:
                 self.data = json.load(file)
-                print("Data loaded successfully.")
         except FileNotFoundError:
             raise FileNotFoundError(f"JSON file {self.json_file} not found.")
 

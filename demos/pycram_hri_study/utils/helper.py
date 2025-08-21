@@ -1,5 +1,5 @@
 from typing import Optional
-from geometry_msgs.msg import PointStamped, PoseStamped
+from geometry_msgs.msg import PoseStamped
 from pycram.datastructures.enums import ImageEnum
 from pycram.designators.action_designator import *
 from pycram.designators.motion_designator import PointingMotion
@@ -54,6 +54,7 @@ def get_attributes(guest: HumanDescription, trys: Optional[int] = 0):
 
         return guest
 
+
 def detect_point_to_seat(robot, no_sofa: Optional[bool] = False):
     """
     function to look for a place to sit and poit to it
@@ -69,7 +70,6 @@ def detect_point_to_seat(robot, no_sofa: Optional[bool] = False):
         rospy.logerr("aaahrg")
         return None
     free_seat = False
-    print(seat)
 
     # loop through all seating options detected by perception
     if not no_sofa:
@@ -84,7 +84,6 @@ def detect_point_to_seat(robot, no_sofa: Optional[bool] = False):
                 # transform poses to find out position relative to robot
                 lt = LocalTransformer()
                 pose_in_robot_frame = lt.transform_pose(pose_in_map, robot.get_link_tf_frame("base_link"))
-                print(pose_in_robot_frame.pose.position.y)
                 if pose_in_robot_frame.pose.position.y > 0.45:
                     TalkingMotion("please take a seat to the left from me").perform()
                     # move pose more to the left for clear pointing pose
@@ -175,15 +174,20 @@ def PoseStamped_to_Point(pose: PoseStamped):
 
 
 def check_drink_available(guest: HumanDescription):
+    """
+    detect drinks and check if persons favorite drink was detected
+    :param guest: human variable containing important information
+    """
 
     try:
         drinks = DetectAction(technique='drink').resolve().perform()
     except PerceptionObjectNotFound:
+        # not a single drink detected on table
         TalkingMotion("i can not find that drink here").perform()
         return False
     try:
+        # map the nlp/persons drink to the name of perception framework
         robokudo_name = nlp_drink_to_robokudo[guest.fav_drink.strip(" ")]
-        print("found in list")
     except KeyError:
         TalkingMotion("i can not find that drink here").perform()
         return False
@@ -192,6 +196,8 @@ def check_drink_available(guest: HumanDescription):
         if drink[0] == robokudo_name:
             TalkingMotion("your favorite drink stands on the table").perform()
             return True
+
+        # special case
         if robokudo_name == "Milkpack":
             if drink[0] == "MilkpackLactoseFree":
                 TalkingMotion("your favorite drink stands on the table").perform()
@@ -251,6 +257,22 @@ nlp_drink_to_robokudo = {
     "red oil": "RedBullCan",
     "tea": "TeaBagBoxWestminster"
 }
+
+
+available_drinks_ba = ["water", "cola", "coffee", "juice", "apple juice", "milk"]
+
+
+def drive_to_drinks(drink: str):
+    """
+    function that determines if the heard drink is available in the apartment
+    :param drink: drink that was understood
+    """
+    drink = drink.strip()
+    for i in range(len(available_drinks_ba)):
+        if drink == available_drinks_ba[i]:
+            return True
+
+    return False
 
 
 

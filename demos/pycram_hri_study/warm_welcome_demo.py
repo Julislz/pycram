@@ -48,21 +48,7 @@ beverage_pose = Pose(position=[2.2, 4, 0], orientation=[0, 0, 0.9, 0.3])
 kitchen_pose = Pose(position=[3.5, -2.35, 0], orientation=[0, 0, 1, 0])
 
 
-available_drinks_ba = ["water", "cola", "coffee", "juice", "apple juice", "milk"]
-
-
-def drive_to_drinks(drink: str):
-    drink = drink.strip()
-    global drinks
-    for i in range(len(available_drinks_ba)):
-        if drink == available_drinks_ba[i]:
-            return True
-
-    return False
-
-
 def demo(step: int):
-    print(robot.get_pose())
     drinks = False
     kitchen = False
 
@@ -93,6 +79,7 @@ def demo(step: int):
             else:
                 guest.set_drink(known_fav_drink)
 
+            # is drink available?
             if drive_to_drinks(guest.fav_drink):
                 drinks = True
             else:
@@ -128,7 +115,7 @@ def demo(step: int):
                 MoveJointsMotion(["torso_lift_joint"], [0.1]).perform()
 
             if kitchen:
-                # guide to drinking area
+                # guide to kitchen with snacks
                 NavigateAction([kitchen_pose]).resolve().perform()
                 MoveJointsMotion(["head_tilt_joint"], [0.1]).perform()
                 DetectAction(technique='human_receptionist', state="start").resolve().perform()
@@ -192,6 +179,7 @@ def demo(step: int):
             HeadFollowMotion(state="start").perform()
 
             if drinks:
+                # point to kitchen
                 pose_guest = PointStamped()
                 pose_guest.header.frame_id = "map"
                 pose_guest.point.x = 2.4
@@ -204,6 +192,7 @@ def demo(step: int):
                 rospy.sleep(2)
 
             if kitchen:
+                # look at the table with the beverages
                 look_end = Pose([2.4, 2.1, 0.8])
                 LookAtAction([look_end]).resolve().perform()
                 TalkingMotion("behind me is a table with beverages").perform()

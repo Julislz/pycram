@@ -1,5 +1,4 @@
 from typing import Optional
-
 import pycram.external_interfaces.giskard as giskardpy
 from demos.pycram_hsrb_real_test_demos.utils.startup import startup
 from demos.pycram_receptionist_demo.utils.helper import *
@@ -33,11 +32,10 @@ class Human:
         # Subscriber to the human pose topic
         self.human_pose_sub = rospy.Subscriber("/human_pose", PointStamped, self.human_pose_cb)
 
-    def human_pose_cb(self, HumanPoseMsg):
+    def human_pose_cb(self):
         """
         Callback function for human_pose Subscriber.
         Sets the attribute human_pose when someone (e.g. Perception/Robokudo) publishes on the topic.
-        :param HumanPoseMsg: received message
         """
         self.human_pose = True
 
@@ -63,7 +61,7 @@ def demo(step: int, clear_path: Optional[bool] = True):
             MoveJointsMotion(["arm_roll_joint"], [-1.2]).perform()
 
             # wait for human and hand to be pushed down
-            demo_start(human)
+            look_human(human)
 
         if step <= 2:
             TalkingMotion("when we arrive, push down my gripper.").perform()
@@ -124,11 +122,11 @@ def demo(step: int, clear_path: Optional[bool] = True):
                 rospy.sleep(1)
                 MoveJointsMotion(["head_tilt_joint"], [0.2]).perform()
                 MoveJointsMotion(["head_pan_joint"], [0.0]).perform()
-                demo_start(human=human)
+                look_human(human=human)
                 demo(2, clear_path=False)
 
 
-def demo_start(human: Human):
+def look_human(human: Human):
     """
     The robot will wait until its hand is pushed down and then scan the
     environment for a human
@@ -138,7 +136,7 @@ def demo_start(human: Human):
         img.pub_now(ImageEnum.PUSHBUTTONS.value)
         TalkingMotion("Push down my Hand, when i should follow you").perform()
 
-        # wait for gripper  to be pushed down
+        # wait for gripper to be pushed down
         plan = Code(lambda: rospy.sleep(1)) * 999999 >> Monitor(monitor_func)
         plan.perform()
 
